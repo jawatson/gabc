@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=gabc
+Exec=gabc
+Icon=me.pm.m0dns.gabc
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true

@@ -1,0 +1,6 @@
+data/me.pm.m0dns.gabc.desktop.in
+data/me.pm.m0dns.gabc.appdata.xml.in
+data/me.pm.m0dns.gabc.gschema.xml
+src/main.c
+src/gabc-window.c
+src/gabc-window.ui
