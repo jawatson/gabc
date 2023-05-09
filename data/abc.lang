@@ -30,7 +30,6 @@
     <style id="comment" _name="Comment" map-to="def:comment"/>
     <style id="keyword" _name="Keyword" map-to="def:keyword"/>
     <style id="string"  _name="String"  map-to="def:string"/>
-    <style id="heading" name="Heading" map-to="def:constant"/>
     <style id="symbol" name="Symbol" map-to="def:inline-code"/>
   </styles>
   <definitions>
@@ -47,8 +46,8 @@
       <end>$</end>								<!-- (also used to remove this from music lines) -->
     </context>
     
-    <context id="heading">						<!-- T:Title etc., no leading spaces -->
-      <start>^[A-Z]:</start>					<!-- (also used to remove this from music lines) -->
+    <context id="heading" style-ref="def:identifier">	<!-- T:Title etc., no leading spaces -->
+      <start>^[A-Z]:</start>					        <!-- (also used to remove this from music lines) -->
       <end>$</end>    							
     </context>
 
@@ -68,13 +67,18 @@
       <start>&quot;</start>						<!-- (also used to remove this from pitch matching) -->
       <end>&quot;</end>
     </context>
+
+    <context id="bar" style-ref="def:shebang">	<!--  -->
+      <start>[\||\|\]|\|:|:\|]</start>
+      <end></end>
+    </context>
     
     <context id="pitch" style-ref="keyword">	<!-- the pitch of notes -->
       <match>[\^_=]?[abcdefgzABCDEFG123\.][,']*</match>
     </context>
     
     <context id="symbol" style-ref="symbol">	<!-- e.g. !cut! !breath! -->
-      <start>![a-zA-Z]</start>
+      <start>![a-z]</start>
       <end>!</end>
     </context>
     
@@ -88,6 +92,7 @@
         <context ref="symbol"/>         <!-- stuff inside a music line -->
         <context ref="remark"/>					
         <context ref="noterem"/>
+        <context ref="bar"/>
         <context ref="quoted"/>
         <context ref="pitch"/>
 
