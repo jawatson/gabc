@@ -2,6 +2,7 @@
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="Adw" version="1.0"/>
+  <requires lib="GtkSource" version="5.0"/>
   <template class="GabcWindow" parent="AdwApplicationWindow">
     <property name="default-width">600</property>
     <property name="default-height">300</property>
@@ -37,8 +38,20 @@
             <property name="margin-start">6</property>
             <property name="margin-end">6</property>
             <property name="child">
-              <object class="GtkTextView" id="main_text_view">
-                <property name="monospace">true</property>
+              <object class="GtkSourceView" id="main_text_view">
+              <property name="buffer">
+                <object class="GtkSourceBuffer">
+                </object>
+              </property>
+              <property name="visible">True</property>
+              <property name="can-focus">True</property>
+              <property name="hexpand">True</property>
+              <property name="vexpand">True</property>
+              <property name="monospace">True</property>
+              <property name="left-margin">12</property>
+              <property name="top-margin">12</property>
+              <property name="bottom-margin">12</property>
+              <property name="right-margin">12</property>
               </object>
             </property>
           </object>

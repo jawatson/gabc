@@ -21,6 +21,7 @@
 #pragma once
 
 #include <adwaita.h>
+#include <gtksourceview/gtksource.h>
 
 G_BEGIN_DECLS
 

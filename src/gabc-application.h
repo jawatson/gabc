@@ -22,6 +22,7 @@
 
 #include <adwaita.h>
 
+
 G_BEGIN_DECLS
 
 #define GABC_TYPE_APPLICATION (gabc_application_get_type())

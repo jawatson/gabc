@@ -28,7 +28,7 @@ struct _GabcWindow
 
 	/* Template widgets */
 	GtkHeaderBar        *header_bar;
-	GtkTextView         *main_text_view;
+	GtkSourceView       *main_text_view;
         GtkButton           *open_button;
 };
 
@@ -38,6 +38,8 @@ static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+        g_type_ensure (GTK_SOURCE_TYPE_VIEW);
 
 	gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
 	gtk_widget_class_bind_template_child (widget_class,
@@ -163,7 +165,7 @@ open_file_complete (GObject          *source_object,
     }
   // Retrieve the GtkTextBuffer instance that stores the
   // text displayed by the GtkTextView widget
-  GtkTextBuffer *buffer = gtk_text_view_get_buffer (self->main_text_view);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer ((GtkTextView*)self->main_text_view);
 
   // Set the text using the contents of the file
   gtk_text_buffer_set_text (buffer, contents, length);
