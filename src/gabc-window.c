@@ -165,14 +165,14 @@ open_file_complete (GObject          *source_object,
     }
   // Retrieve the GtkTextBuffer instance that stores the
   // text displayed by the GtkTextView widget
-  GtkTextBuffer *buffer = gtk_text_view_get_buffer ((GtkTextView*)self->main_text_view);
+  GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
 
   // Set the text using the contents of the file
-  gtk_text_buffer_set_text (buffer, contents, length);
+  gtk_text_buffer_set_text (GTK_TEXT_BUFFER(buffer), contents, length);
 
   // Reposition the cursor so it's at the start of the text
   GtkTextIter start;
-  gtk_text_buffer_get_start_iter (buffer, &start);
-  gtk_text_buffer_place_cursor (buffer, &start);
+  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &start);
+  gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER(buffer), &start);
  }
 
