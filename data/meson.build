@@ -29,6 +29,9 @@ install_data('me.pm.m0dns.gabc.gschema.xml',
   install_dir: join_paths(get_option('datadir'), 'glib-2.0/schemas')
 )
 
+install_data('abc.lang',
+	install_dir : get_option('datadir') / 'gtksourceview-5/language-specs')
+
 compile_schemas = find_program('glib-compile-schemas', required: false)
 if compile_schemas.found()
   test('Validate schema file',

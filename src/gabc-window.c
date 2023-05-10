@@ -136,6 +136,10 @@ open_file_complete (GObject          *source_object,
                     GabcWindow       *self)
 {
   GFile *file = G_FILE (source_object);
+  GtkSourceBuffer *buffer;
+
+  GtkSourceLanguageManager *lm;
+  GtkSourceLanguage *language = NULL;
 
   g_autofree char *contents = NULL;
   gsize length = 0;
@@ -170,8 +174,23 @@ open_file_complete (GObject          *source_object,
     }
   // Retrieve the GtkTextBuffer instance that stores the
   // text displayed by the GtkTextView widget
-  GtkSourceBuffer *buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
+  buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
 
+  lm = gtk_source_language_manager_get_default();
+  language = gtk_source_language_manager_get_language (lm,"abc");
+  if (language == NULL)
+    {
+      g_print ("No language found for mime type '%s'\n", "abc");
+      //g_object_set (G_OBJECT (buffer), "highlight", FALSE, NULL);
+    }
+    else
+    {
+    gtk_source_buffer_set_language (buffer, language);
+    //g_object_set (G_OBJECT (buffer), "highlight", TRUE, NULL);
+    }
+
+  // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
+  //
   // Set the text using the contents of the file
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER(buffer), contents, length);
 
