@@ -35,9 +35,9 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
                               GabcWindow  *self);
 
 static void
-on_open_response (GtkNativeDialog  *native,
-                  int               response,
-                  GabcWindow       *self);
+file_open_callback ( GObject* source_object,
+                      GAsyncResult* res,
+                      gpointer data);
 
 static void
 open_file_complete (GObject          *source_object,

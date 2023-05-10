@@ -34,6 +34,7 @@ struct _GabcWindow
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
+
 static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
@@ -53,6 +54,7 @@ gabc_window_class_init (GabcWindowClass *klass)
                                               open_button);
 }
 
+
 static void
 gabc_window_init (GabcWindow *self)
 {
@@ -68,57 +70,51 @@ gabc_window_init (GabcWindow *self)
 
 }
 
+
 static void
 gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
                               GVariant    *parameter G_GNUC_UNUSED,
                               GabcWindow  *self)
 {
-  GtkFileFilter *filter;
-  // Create a new file selection dialog, using the "open" mode
-  GtkFileChooserNative *native =
-    gtk_file_chooser_native_new ("Open File",
-                                 GTK_WINDOW (self),
-                                 GTK_FILE_CHOOSER_ACTION_OPEN,
-                                 "_Open",
-                                 "_Cancel");
+  GtkFileDialog *gfd;
+  GtkFileFilter *abc_filter;
 
-  // Connect the "response" signal of the file selection dialog;
-  // this signal is emitted when the user selects a file, or when
-  // they cancel the operation
-  g_signal_connect (native,
-                    "response",
-                    G_CALLBACK (on_open_response),
-                    self);
+  gfd = gtk_file_dialog_new ();
+  gtk_file_dialog_set_title ( gfd, "Open abc File");
 
-  filter = gtk_file_filter_new();
-  gtk_file_filter_add_pattern(filter, "*.abc");
-  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(native), filter);
+  abc_filter = gtk_file_filter_new();
+  gtk_file_filter_add_pattern(abc_filter, "*.abc");
 
-  // Present the dialog to the user
-  gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
+  GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
+  g_list_store_append (filter_list, G_OBJECT (abc_filter));
+
+  gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
+  gtk_file_dialog_set_default_filter (gfd, abc_filter);
+
+  gtk_file_dialog_open (gfd,
+                        GTK_WINDOW (self),
+                        NULL,
+                        file_open_callback,
+                        G_OBJECT (self));
 }
+
 
 static void
-on_open_response (GtkNativeDialog  *native,
-                  int               response,
-                  GabcWindow       *self)
+file_open_callback ( GObject* file_dialog,
+                      GAsyncResult* res,
+                      gpointer self)
 {
-  // If the user selected a file...
-  if (response == GTK_RESPONSE_ACCEPT)
-    {
-      GtkFileChooser *chooser = GTK_FILE_CHOOSER (native);
-
-      // ... retrieve the location from the dialog...
-      g_autoptr (GFile) file = gtk_file_chooser_get_file (chooser);
-
-      // ... and open it
+  g_autoptr (GFile) file = gtk_file_dialog_open_finish ( GTK_FILE_DIALOG (file_dialog),
+                                                        res,
+                                                        NULL);
+  if (file) {
       open_file (self, file);
-    }
+  }
 
-  // Release the reference on the file selection dialog now that we
-  // do not need it any more
-  g_object_unref (native);
+  g_object_unref (file_dialog);
 }
+
+
 
 static void
 open_file (GabcWindow       *self,
