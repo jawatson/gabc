@@ -29,23 +29,4 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GabcWindow, gabc_window, GABC, WINDOW, AdwApplicationWindow)
 
-static void
-gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
-                              GVariant    *parameter G_GNUC_UNUSED,
-                              GabcWindow  *self);
-
-static void
-file_open_callback ( GObject* source_object,
-                      GAsyncResult* res,
-                      gpointer data);
-
-static void
-open_file_complete (GObject          *source_object,
-                    GAsyncResult     *result,
-                    GabcWindow       *self);
-
-static void
-open_file (GabcWindow       *self,
-           GFile            *file);
-
 G_END_DECLS

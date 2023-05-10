@@ -34,6 +34,28 @@ struct _GabcWindow
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
+static void
+gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
+                              GVariant    *parameter G_GNUC_UNUSED,
+                              GabcWindow  *self);
+
+static void
+file_open_callback ( GObject* source_object,
+                      GAsyncResult* res,
+                      gpointer data);
+
+static void
+open_file_complete (GObject          *source_object,
+                    GAsyncResult     *result,
+                    GabcWindow       *self);
+
+static void
+open_file (GabcWindow       *self,
+           GFile            *file);
+
+
+
+
 
 static void
 gabc_window_class_init (GabcWindowClass *klass)
@@ -60,7 +82,7 @@ gabc_window_init (GabcWindow *self)
 {
 	gtk_widget_init_template (GTK_WIDGET (self));
         g_autoptr (GSimpleAction) open_action =
-        g_simple_action_new ("open", NULL);
+          g_simple_action_new ("open", NULL);
         g_signal_connect (open_action,
                           "activate",
                           G_CALLBACK (gabc_window__open_file_dialog),
@@ -78,6 +100,7 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
 {
   GtkFileDialog *gfd;
   GtkFileFilter *abc_filter;
+  GListStore *filter_list;
 
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Open abc File");
@@ -85,7 +108,7 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
   abc_filter = gtk_file_filter_new();
   gtk_file_filter_add_pattern(abc_filter, "*.abc");
 
-  GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
+  filter_list = g_list_store_new( G_TYPE_OBJECT );
   g_list_store_append (filter_list, G_OBJECT (abc_filter));
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
@@ -133,6 +156,7 @@ open_file_complete (GObject          *source_object,
 {
   GFile *file = G_FILE (source_object);
   GtkSourceBuffer *buffer;
+  GtkTextIter start;
 
   GtkSourceLanguageManager *lm;
   GtkSourceLanguage *language = NULL;
@@ -191,7 +215,6 @@ open_file_complete (GObject          *source_object,
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER(buffer), contents, length);
 
   // Reposition the cursor so it's at the start of the text
-  GtkTextIter start;
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &start);
   gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER(buffer), &start);
  }
