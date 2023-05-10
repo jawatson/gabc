@@ -73,6 +73,7 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
                               GVariant    *parameter G_GNUC_UNUSED,
                               GabcWindow  *self)
 {
+  GtkFileFilter *filter;
   // Create a new file selection dialog, using the "open" mode
   GtkFileChooserNative *native =
     gtk_file_chooser_native_new ("Open File",
@@ -88,6 +89,10 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
                     "response",
                     G_CALLBACK (on_open_response),
                     self);
+
+  filter = gtk_file_filter_new();
+  gtk_file_filter_add_pattern(filter, "*.abc");
+  gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(native), filter);
 
   // Present the dialog to the user
   gtk_native_dialog_show (GTK_NATIVE_DIALOG (native));
