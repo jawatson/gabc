@@ -31,6 +31,7 @@ struct _GabcWindow
 	GtkSourceView       *main_text_view;
         GtkSourceBuffer     *buffer;
         GtkButton           *open_button;
+        GtkButton           *engrave_button;
 };
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -55,6 +56,16 @@ open_file (GabcWindow       *self,
            GFile            *file);
 
 static void
+gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self);
+
+static void
+gabc_window_write_buffer_to_file (GabcWindow  *self);
+
+
+
+static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
 	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -71,6 +82,9 @@ gabc_window_class_init (GabcWindowClass *klass)
         gtk_widget_class_bind_template_child (widget_class,
                                               GabcWindow,
                                               open_button);
+        gtk_widget_class_bind_template_child (widget_class,
+                                              GabcWindow,
+                                              engrave_button);
 }
 
 
@@ -88,6 +102,14 @@ gabc_window_init (GabcWindow *self)
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (open_action));
+
+  g_autoptr (GSimpleAction) engrave_action = g_simple_action_new ("engrave", NULL);
+  g_signal_connect (engrave_action,
+                    "activate",
+                    G_CALLBACK (gabc_window_engrave_file),
+                    self);
+  g_action_map_add_action (G_ACTION_MAP (self),
+                         G_ACTION (engrave_action));
 
   // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
   self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
@@ -210,4 +232,45 @@ open_file_complete (GObject          *source_object,
   gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
  }
 
+static void
+gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self)
+{
+  g_print("scoring the file");
+  gabc_window_write_buffer_to_file(self);
+}
 
+static void
+gabc_window_write_buffer_to_file (GabcWindow  *self)
+{
+  gchar *text;
+  GtkTextIter start;
+  GtkTextIter end;
+  gboolean result;
+  gchar *file_path;
+  GError *err;
+
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
+  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
+  text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->buffer), &start, &end, FALSE);
+  gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
+
+  //file_path = g_build_filename (g_get_tmp_dir(), "gabc-123456.abc", NULL);
+  //file_path = g_build_filename ("gabc-123456.abc", NULL);
+  file_path = "gabc-123456.abc";
+  g_print("%s", file_path);
+  //result = g_file_set_contents (file_path, text, -1, &err);
+  result = g_file_set_contents ("gabc-123456.abc", text, -1, &err);
+
+  if (result == FALSE)
+  {
+      /* error saving file, show message to user */
+      //error_message (err->message);
+      g_print ("error");
+      g_error_free (err);
+  }
+  g_free (text);
+}
