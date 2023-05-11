@@ -93,6 +93,9 @@ gabc_window_init (GabcWindow *self)
   self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
   g_object_ref (self->buffer);
 
+  gtk_source_buffer_set_highlight_syntax (self->buffer, true);
+  gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
+
   lm = gtk_source_language_manager_get_default();
   language = gtk_source_language_manager_get_language (lm,"abc");
   if (language == NULL)
