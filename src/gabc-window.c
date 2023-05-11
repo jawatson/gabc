@@ -29,6 +29,7 @@ struct _GabcWindow
 	/* Template widgets */
 	GtkHeaderBar        *header_bar;
 	GtkSourceView       *main_text_view;
+        GtkSourceBuffer     *buffer;
         GtkButton           *open_button;
 };
 
@@ -53,10 +54,6 @@ static void
 open_file (GabcWindow       *self,
            GFile            *file);
 
-
-
-
-
 static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
@@ -80,7 +77,6 @@ gabc_window_class_init (GabcWindowClass *klass)
 static void
 gabc_window_init (GabcWindow *self)
 {
-  GtkSourceBuffer *buffer;
   GtkSourceLanguageManager *lm;
   GtkSourceLanguage *language = NULL;
 
@@ -94,7 +90,8 @@ gabc_window_init (GabcWindow *self)
                          G_ACTION (open_action));
 
   // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
-  buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
+  self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
+  g_object_ref (self->buffer);
 
   lm = gtk_source_language_manager_get_default();
   language = gtk_source_language_manager_get_language (lm,"abc");
@@ -104,7 +101,7 @@ gabc_window_init (GabcWindow *self)
   }
   else
   {
-    gtk_source_buffer_set_language (buffer, language);
+    gtk_source_buffer_set_language (self->buffer, language);
   }
 }
 
@@ -143,16 +140,14 @@ file_open_callback ( GObject* file_dialog,
                       GAsyncResult* res,
                       gpointer self)
 {
-  g_autoptr (GFile) file = gtk_file_dialog_open_finish ( GTK_FILE_DIALOG (file_dialog),
+  g_autoptr (GFile) file = gtk_file_dialog_open_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
                                                         NULL);
   if (file) {
       open_file (self, file);
   }
-
   g_object_unref (file_dialog);
 }
-
 
 
 static void
@@ -171,7 +166,6 @@ open_file_complete (GObject          *source_object,
                     GabcWindow       *self)
 {
   GFile *file = G_FILE (source_object);
-  GtkSourceBuffer *buffer;
   GtkTextIter start;
 
   g_autofree char *contents = NULL;
@@ -191,7 +185,7 @@ open_file_complete (GObject          *source_object,
 
   // In case of error, print a warning to the standard error output
   if (error != NULL)
-    {
+    {	g_object_ref (self->buffer);
       g_printerr ("Unable to open “%s”: %s\n",
                   g_file_peek_path (file),
                   error->message);
@@ -199,22 +193,18 @@ open_file_complete (GObject          *source_object,
     }
   // Ensure that the file is encoded with UTF-8
   if (!g_utf8_validate (contents, length, NULL))
-    {
-      g_printerr ("Unable to load the contents of “%s”: "
-                  "the file is not encoded with UTF-8\n",
-                  g_file_peek_path (file));
-      return;
-    }
-  // Retrieve the GtkTextBuffer instance that stores the
-  // text displayed by the GtkSourceView widget
-  buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
-
+  {
+    g_printerr ("Unable to load the contents of “%s”: "
+                "the file is not encoded with UTF-8\n",
+                g_file_peek_path (file));
+    return;
+  }
   // Set the text using the contents of the file
-  gtk_text_buffer_set_text (GTK_TEXT_BUFFER(buffer), contents, length);
+  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), contents, length);
 
   // Reposition the cursor so it's at the start of the text
-  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &start);
-  gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER(buffer), &start);
+  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
+  gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
  }
 
 
