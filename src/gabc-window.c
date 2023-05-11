@@ -80,16 +80,31 @@ gabc_window_class_init (GabcWindowClass *klass)
 static void
 gabc_window_init (GabcWindow *self)
 {
-	gtk_widget_init_template (GTK_WIDGET (self));
-        g_autoptr (GSimpleAction) open_action =
-          g_simple_action_new ("open", NULL);
-        g_signal_connect (open_action,
-                          "activate",
-                          G_CALLBACK (gabc_window__open_file_dialog),
-                          self);
-        g_action_map_add_action (G_ACTION_MAP (self),
-                               G_ACTION (open_action));
+  GtkSourceBuffer *buffer;
+  GtkSourceLanguageManager *lm;
+  GtkSourceLanguage *language = NULL;
 
+  gtk_widget_init_template (GTK_WIDGET (self));
+  g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
+  g_signal_connect (open_action,
+                    "activate",
+                    G_CALLBACK (gabc_window__open_file_dialog),
+                    self);
+  g_action_map_add_action (G_ACTION_MAP (self),
+                         G_ACTION (open_action));
+
+  buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
+
+  lm = gtk_source_language_manager_get_default();
+  language = gtk_source_language_manager_get_language (lm,"abc");
+  if (language == NULL)
+  {
+    g_print ("No language found for mime type '%s'\n", "abc");
+  }
+  else
+  {
+    gtk_source_buffer_set_language (buffer, language);
+  }
 }
 
 
@@ -158,9 +173,6 @@ open_file_complete (GObject          *source_object,
   GtkSourceBuffer *buffer;
   GtkTextIter start;
 
-  GtkSourceLanguageManager *lm;
-  GtkSourceLanguage *language = NULL;
-
   g_autofree char *contents = NULL;
   gsize length = 0;
 
@@ -193,24 +205,9 @@ open_file_complete (GObject          *source_object,
       return;
     }
   // Retrieve the GtkTextBuffer instance that stores the
-  // text displayed by the GtkTextView widget
+  // text displayed by the GtkSourceView widget
   buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
 
-  lm = gtk_source_language_manager_get_default();
-  language = gtk_source_language_manager_get_language (lm,"abc");
-  if (language == NULL)
-    {
-      g_print ("No language found for mime type '%s'\n", "abc");
-      //g_object_set (G_OBJECT (buffer), "highlight", FALSE, NULL);
-    }
-    else
-    {
-    gtk_source_buffer_set_language (buffer, language);
-    //g_object_set (G_OBJECT (buffer), "highlight", TRUE, NULL);
-    }
-
-  // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
-  //
   // Set the text using the contents of the file
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER(buffer), contents, length);
 
@@ -218,4 +215,5 @@ open_file_complete (GObject          *source_object,
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER(buffer), &start);
   gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER(buffer), &start);
  }
+
 
