@@ -18,6 +18,7 @@
                 <property name="action-name">win.open</property>
               </object>
             </child>
+
             <child type="end">
               <object class="GtkMenuButton">
                 <property name="icon-name">open-menu-symbolic</property>
@@ -25,6 +26,12 @@
                 <style>
                   <class name="devel"/>
                 </style>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton"  id="engrave_button">
+                <property name="label">E</property>
+                <property name="action-name">win.engrave</property>
               </object>
             </child>
           </object>
