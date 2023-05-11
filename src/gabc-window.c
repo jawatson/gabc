@@ -93,6 +93,7 @@ gabc_window_init (GabcWindow *self)
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (open_action));
 
+  // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
   buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
 
   lm = gtk_source_language_manager_get_default();
