@@ -65,6 +65,7 @@ gabc_window_write_buffer_to_file (GabcWindow  *self);
 
 
 
+
 static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
@@ -237,19 +238,39 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  g_print("scoring the file");
+  g_print("engraving the file\n");
   gabc_window_write_buffer_to_file(self);
 }
+
+// https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/class.FileSaver.html
+
+// https://github.com/GNOME/gtksourceview/blob/master/testsuite/test-file-saver.c
+//
+// https://developer.gnome.org/documentation/tutorials/beginners/getting_started/saving_files.html
+//
+//
+
+
 
 static void
 gabc_window_write_buffer_to_file (GabcWindow  *self)
 {
-  gchar *text;
+
   GtkTextIter start;
   GtkTextIter end;
+  char *text;
+  GFileIOStream *gios;
+  GOutputStream *gos;
+  GError *error = NULL;
+  gchar *tmpname = NULL;
+  gsize count;
+
+  // For spawn
+  gint exit_status = 0;
+  gchar *p_stdout = NULL;
+  gchar *p_stderr = NULL;
+  GError *p_error = NULL;
   gboolean result;
-  gchar *file_path;
-  GError *err;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
@@ -258,19 +279,52 @@ gabc_window_write_buffer_to_file (GabcWindow  *self)
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
-  //file_path = g_build_filename (g_get_tmp_dir(), "gabc-123456.abc", NULL);
-  //file_path = g_build_filename ("gabc-123456.abc", NULL);
-  file_path = "gabc-123456.abc";
-  g_print("%s", file_path);
-  //result = g_file_set_contents (file_path, text, -1, &err);
-  result = g_file_set_contents ("gabc-123456.abc", text, -1, &err);
+  g_file_open_tmp ( "gabc-XXXXXX.abc", &tmpname, &error );
 
-  if (result == FALSE)
-  {
-      /* error saving file, show message to user */
-      //error_message (err->message);
-      g_print ("error");
-      g_error_free (err);
+  if ( error ) {
+	  g_warning ( "%s", error->message );
+	  g_error_free ( error );
+	  //return NULL;
   }
-  g_free (text);
+  gios = g_file_open_readwrite ( g_file_new_for_path (tmpname), NULL, &error );
+  if ( error ) {
+	  g_warning ( "%s", error->message );
+	  g_error_free ( error );
+	  //return NULL;
+  }
+
+  count = strlen(text);
+  g_print ("length is %lu \n",count);
+  g_print("%s",text);
+  gos = g_io_stream_get_output_stream ( G_IO_STREAM(gios) );
+  if ( g_output_stream_write ( gos, text, count, NULL, &error ) < 0 ) {
+	  g_critical ( "Couldn't write tmp %s file due to %s", tmpname, error->message );
+	  g_free (tmpname);
+	  tmpname = NULL;
+  }
+
+  g_output_stream_close ( gos, NULL, &error );
+  g_object_unref ( gios );
+
+  g_print("%s\n",tmpname);
+
+  gchar cmd[64];
+  //g_snprintf (cmd, 64, "/usr/local/bin/abcm2ps -i -O= %s", tmpname);
+  g_snprintf (cmd, 64, "gedit %s", tmpname);
+
+  g_print("%s \n", cmd);
+
+  // use spawn sync as this lets us specify the working directory
+  result = g_spawn_command_line_sync("evince", &p_stdout, &p_stderr, &exit_status, &p_error);
+
+  if (result == TRUE ) {
+    g_print ("well that went well \n");
+  }
+  else
+  {
+    g_print ("abc2ps failed");
+  }
+  //g_snprintf (cmd, 64, "evince %", tmpname);"
+
 }
+
