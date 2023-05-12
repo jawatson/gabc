@@ -302,9 +302,37 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
 }
 
 gchar *
+set_file_extension (gchar *file_path, gchar *extension)
+{
+  gchar *parent_dir;
+  gchar *original_basename;
+  gchar *new_file_path;
+  gchar *new_basename;
+  gchar **tokens;
+  GFile *file;
+
+  file = g_file_new_for_path(file_path);
+  original_basename = g_file_get_basename(file);
+  parent_dir = g_file_get_path(g_file_get_parent(file));
+
+  tokens = g_strsplit(original_basename, ".", 0);
+
+  new_basename = g_strconcat(tokens[0], ".", extension, NULL);
+  new_file_path = g_build_filename (parent_dir, new_basename, NULL);
+
+  g_free (parent_dir);
+  g_free (original_basename);
+  g_free (new_basename);
+  g_strfreev(tokens);
+  g_free (file);
+
+  return new_file_path;
+}
+
+gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 {
-// For spawn
+  // For spawn
   gchar *standard_output;
   gchar *standard_error;
 
@@ -312,23 +340,11 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gint exit_status;
   gboolean result;
 
-  gchar *parent_dir;
-  gchar *abc_basename;
-  gchar *ps_basename;
   gchar *ps_file_path;
-  gchar *path;
-  gchar **tokens;
-  GFile *abc_file;
+  gchar *abc_basename;
 
-  abc_file = g_file_new_for_path(file_path);
-  abc_basename = g_file_get_basename(abc_file);
-  path = g_file_get_path(abc_file);
-  parent_dir = g_file_get_path(g_file_get_parent(abc_file));
-
-  tokens = g_strsplit(abc_basename, ".", 0);
-
-  ps_basename = g_strconcat(tokens[0], ".ps", NULL);
-  ps_file_path = g_build_filename (parent_dir, ps_basename, NULL);
+  ps_file_path = set_file_extension (file_path, "ps");
+  abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
 
   const gchar *cmd[] = { "abcm2ps", "-O=", abc_basename, NULL };
 
@@ -343,11 +359,6 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
     g_clear_error (&error);
   }
 
-  g_strfreev(tokens);
-  g_free (abc_basename);
-  g_free (ps_basename);
-  g_free (path);
-  g_free (abc_file);
   g_free (standard_output);
   g_free (standard_error);
 
@@ -358,31 +369,20 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 gchar *
 gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 {
-// For spawn
+  // For spawn
   gchar *standard_output;
   gchar *standard_error;
   GError *error = NULL;
   gint exit_status;
   gboolean result;
 
-  gchar *parent_dir;
   gchar *abc_basename;
   gchar *midi_basename;
   gchar *midi_file_path;
-  gchar *path;
-  gchar **tokens;
-  GFile *abc_file;
 
-
-  abc_file = g_file_new_for_path(file_path);
-  abc_basename = g_file_get_basename(abc_file);
-  path = g_file_get_path(abc_file);
-  parent_dir = g_file_get_path(g_file_get_parent(abc_file));
-
-  tokens = g_strsplit(abc_basename, ".", 0);
-
-  midi_basename = g_strconcat(tokens[0], ".mid", NULL);
-  midi_file_path = g_build_filename (parent_dir, midi_basename, NULL);
+  abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
+  midi_file_path = set_file_extension (file_path, "mid");
+  midi_basename = g_file_get_basename (g_file_new_for_path(midi_file_path));
 
   const gchar *cmd[] = { "abc2midi", abc_basename, "-o", midi_basename, NULL };
 
@@ -396,13 +396,8 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
     g_clear_error (&error);
   }
 
-  g_strfreev (tokens);
   g_free (abc_basename);
   g_free (midi_basename);
-  g_free (path);
-  g_free (standard_output);
-  g_free (standard_error);
-  g_print ("Returning write midi %s \n",midi_file_path );
   return midi_file_path;
 }
 
