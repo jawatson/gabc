@@ -279,43 +279,21 @@ gabc_window_write_buffer_to_file (GabcWindow  *self)
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
-  g_file_open_tmp ( "gabc-XXXXXX.abc", &tmpname, &error );
+  g_print("%s",g_uuid_string_random());
+  const char *file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
+  g_print("%s \n", file_path);
+  g_file_set_contents(file_path, text, -1, NULL);
 
-  if ( error ) {
-	  g_warning ( "%s", error->message );
-	  g_error_free ( error );
-	  //return NULL;
-  }
-  gios = g_file_open_readwrite ( g_file_new_for_path (tmpname), NULL, &error );
-  if ( error ) {
-	  g_warning ( "%s", error->message );
-	  g_error_free ( error );
-	  //return NULL;
-  }
+  g_free(text);
 
-  count = strlen(text);
-  g_print ("length is %lu \n",count);
-  g_print("%s",text);
-  gos = g_io_stream_get_output_stream ( G_IO_STREAM(gios) );
-  if ( g_output_stream_write ( gos, text, count, NULL, &error ) < 0 ) {
-	  g_critical ( "Couldn't write tmp %s file due to %s", tmpname, error->message );
-	  g_free (tmpname);
-	  tmpname = NULL;
-  }
-
-  g_output_stream_close ( gos, NULL, &error );
-  g_object_unref ( gios );
-
-  g_print("%s\n",tmpname);
-
-  gchar cmd[64];
+  //gchar cmd[64];
   //g_snprintf (cmd, 64, "/usr/local/bin/abcm2ps -i -O= %s", tmpname);
-  g_snprintf (cmd, 64, "gedit %s", tmpname);
+  //g_snprintf (cmd, 128, "flatpak-spawn gedit %s", file_path);
 
-  g_print("%s \n", cmd);
+  //g_print("%s \n", cmd);
 
   // use spawn sync as this lets us specify the working directory
-  result = g_spawn_command_line_sync("evince", &p_stdout, &p_stderr, &exit_status, &p_error);
+  result = g_spawn_command_line_sync("flatpak-spawn gedit", &p_stdout, &p_stderr, &exit_status, &p_error);
 
   if (result == TRUE ) {
     g_print ("well that went well \n");
@@ -324,7 +302,15 @@ gabc_window_write_buffer_to_file (GabcWindow  *self)
   {
     g_print ("abc2ps failed");
   }
-  //g_snprintf (cmd, 64, "evince %", tmpname);"
+
+  // Use gtk file launcher to open the ps file
+
+  const char *ps_file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.ps", NULL);
+  GFile *ps_file = g_file_new_for_path(ps_file_path);
+  GtkFileLauncher *launcher = gtk_file_launcher_new (ps_file);
+  gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
 
 }
+
+
 
