@@ -24,6 +24,17 @@
     ],
     "modules" : [
         {
+            "name": "abcm2ps",
+            "buildsystem": "autotools",
+            "no-autogen": true,
+            "sources": [
+                {
+                    "type" : "git",
+                    "url": "https://github.com/lewdlime/abcm2ps.git"
+                }
+            ]
+        },
+        {
             "name" : "gabc",
             "builddir" : true,
             "buildsystem" : "meson",

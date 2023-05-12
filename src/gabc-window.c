@@ -60,10 +60,11 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self);
 
-static void
+const gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
 
-
+static void
+gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self);
 
 
 static void
@@ -239,7 +240,8 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
   g_print("engraving the file\n");
-  gabc_window_write_buffer_to_file(self);
+  const gchar *fn = gabc_window_write_buffer_to_file(self);
+  gabc_window_open_ps_viewer(fn, self);
 }
 
 // https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/class.FileSaver.html
@@ -251,26 +253,14 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
 //
 
 
-
-static void
-gabc_window_write_buffer_to_file (GabcWindow  *self)
+const gchar *
+gabc_window_write_buffer_to_file (GabcWindow *self)
 {
 
   GtkTextIter start;
   GtkTextIter end;
   char *text;
-  GFileIOStream *gios;
-  GOutputStream *gos;
-  GError *error = NULL;
-  gchar *tmpname = NULL;
-  gsize count;
-
-  // For spawn
-  gint exit_status = 0;
-  gchar *p_stdout = NULL;
-  gchar *p_stderr = NULL;
-  GError *p_error = NULL;
-  gboolean result;
+  const gchar *file_path;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
@@ -279,36 +269,48 @@ gabc_window_write_buffer_to_file (GabcWindow  *self)
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
-  g_print("%s",g_uuid_string_random());
-  const char *file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
-  g_print("%s \n", file_path);
+  //g_print("%s",g_uuid_string_random());
+  file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
 
-  g_free(text);
+  g_free (text);
 
-  //gchar cmd[64];
-  //g_snprintf (cmd, 64, "/usr/local/bin/abcm2ps -i -O= %s", tmpname);
-  //g_snprintf (cmd, 128, "flatpak-spawn gedit %s", file_path);
+  return file_path;
+}
 
-  //g_print("%s \n", cmd);
+static void
+gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self)
+{
+// For spawn
+  gchar *standard_output;
+  gchar *standard_error;
 
-  // use spawn sync as this lets us specify the working directory
-  result = g_spawn_command_line_sync("flatpak-spawn gedit", &p_stdout, &p_stderr, &exit_status, &p_error);
+  GError **error = NULL;
+  gint exit_status;
+  gboolean result;
 
-  if (result == TRUE ) {
-    g_print ("well that went well \n");
-  }
-  else
-  {
-    g_print ("abc2ps failed");
+  const gchar *cmd[] = { "abcm2ps", "-O=", "gabc.abc", NULL };
+
+  result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
+                      G_SPAWN_SEARCH_PATH, NULL, NULL,
+                      &standard_output, &standard_error,
+                      &exit_status, error);
+
+  if (result != TRUE ) {
+    g_print ("abcm2ps failed");
   }
 
   // Use gtk file launcher to open the ps file
-
   const char *ps_file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.ps", NULL);
   GFile *ps_file = g_file_new_for_path(ps_file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (ps_file);
   gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
+
+
+  //g_free (file_path);
+  g_free (standard_output);
+  g_free (standard_error);
+
 
 }
 
