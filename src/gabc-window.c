@@ -69,14 +69,14 @@ gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
 const gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
 
-static void
-gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self);
+gchar *
+gabc_window_write_ps_file (gchar *file_path, GabcWindow *self);
 
 gchar *
 gabc_window_write_midi_file (gchar *file_path, GabcWindow *self);
 
 static void
-gabc_window_play_midi_file (gchar *file_path, GabcWindow *self);
+gabc_window_play_media_file (gchar *file_path, GabcWindow *self);
 
 static void
 gabc_window_class_init (GabcWindowClass *klass)
@@ -261,9 +261,9 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  g_print ("engraving the file\n");
   gchar *fn = gabc_window_write_buffer_to_file (self);
-  gabc_window_open_ps_viewer (fn, self);
+  gchar *ps_file_path = gabc_window_write_ps_file (fn, self);
+  gabc_window_play_media_file (ps_file_path, self);
 }
 
 static void
@@ -271,10 +271,9 @@ gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  g_print ("playing the file\n");
   gchar *abc_file_path = gabc_window_write_buffer_to_file (self);
   gchar *midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
-  gabc_window_play_midi_file (midi_file_path, self);
+  gabc_window_play_media_file (midi_file_path, self);
 }
 
 
@@ -299,42 +298,60 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   g_file_set_contents(file_path, text, -1, NULL);
 
   g_free (text);
-
   return file_path;
 }
 
-static void
-gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self)
+gchar *
+gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 {
 // For spawn
   gchar *standard_output;
   gchar *standard_error;
 
-  GError **error = NULL;
+  GError *error = NULL;
   gint exit_status;
   gboolean result;
 
-  const gchar *cmd[] = { "abcm2ps", "-O=", "gabc.abc", NULL };
+  gchar *parent_dir;
+  gchar *abc_basename;
+  gchar *ps_basename;
+  gchar *ps_file_path;
+  gchar *path;
+  gchar **tokens;
+  GFile *abc_file;
+
+  abc_file = g_file_new_for_path(file_path);
+  abc_basename = g_file_get_basename(abc_file);
+  path = g_file_get_path(abc_file);
+  parent_dir = g_file_get_path(g_file_get_parent(abc_file));
+
+  tokens = g_strsplit(abc_basename, ".", 0);
+
+  ps_basename = g_strconcat(tokens[0], ".ps", NULL);
+  ps_file_path = g_build_filename (parent_dir, ps_basename, NULL);
+
+  const gchar *cmd[] = { "abcm2ps", "-O=", abc_basename, NULL };
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
                       &standard_output, &standard_error,
-                      &exit_status, error);
+                      &exit_status, &error);
 
-  if (result != TRUE ) {
-    g_print ("abcm2ps failed");
+  if (result != TRUE )
+  {
+    g_print ("abcm2ps failed: %s \n", error->message);
+    g_clear_error (&error);
   }
 
-  // Use gtk file launcher to open the ps file
-  const char *ps_file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.ps", NULL);
-  GFile *ps_file = g_file_new_for_path(ps_file_path);
-  GtkFileLauncher *launcher = gtk_file_launcher_new (ps_file);
-  gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
-
-
-  //g_free (file_path);
+  g_strfreev(tokens);
+  g_free (abc_basename);
+  g_free (ps_basename);
+  g_free (path);
+  g_free (abc_file);
   g_free (standard_output);
   g_free (standard_error);
+
+  return ps_file_path;
 }
 
 
@@ -344,40 +361,59 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 // For spawn
   gchar *standard_output;
   gchar *standard_error;
-
-  GError **error = NULL;
+  GError *error = NULL;
   gint exit_status;
   gboolean result;
 
-  const gchar *cmd[] = { "abc2midi", "gabc.abc", "-o", "gabc.mid", NULL };
+  gchar *parent_dir;
+  gchar *abc_basename;
+  gchar *midi_basename;
+  gchar *midi_file_path;
+  gchar *path;
+  gchar **tokens;
+  GFile *abc_file;
+
+
+  abc_file = g_file_new_for_path(file_path);
+  abc_basename = g_file_get_basename(abc_file);
+  path = g_file_get_path(abc_file);
+  parent_dir = g_file_get_path(g_file_get_parent(abc_file));
+
+  tokens = g_strsplit(abc_basename, ".", 0);
+
+  midi_basename = g_strconcat(tokens[0], ".mid", NULL);
+  midi_file_path = g_build_filename (parent_dir, midi_basename, NULL);
+
+  const gchar *cmd[] = { "abc2midi", abc_basename, "-o", midi_basename, NULL };
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
                       &standard_output, &standard_error,
-                      &exit_status, error);
+                      &exit_status, &error);
 
   if (result != TRUE ) {
-    g_print ("abc2midi failed");
+    g_print ("abc2midi failed: %s", error->message);
+    g_clear_error (&error);
   }
 
-  //g_free (file_path);
+  g_strfreev (tokens);
+  g_free (abc_basename);
+  g_free (midi_basename);
+  g_free (path);
   g_free (standard_output);
   g_free (standard_error);
-
-  return "todo";
+  g_print ("Returning write midi %s \n",midi_file_path );
+  return midi_file_path;
 }
 
-static void
-gabc_window_play_midi_file (gchar *file_path, GabcWindow *self)
-{
 
-  g_print ("%s",file_path);
+static void
+gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
+{
   // Use gtk file launcher to open the midi file
-  const char *media_file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.mid", NULL);
-  GFile *media_file = g_file_new_for_path (media_file_path);
+  GFile *media_file = g_file_new_for_path ((char *)file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
   gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
-
 }
 
 
