@@ -35,6 +35,17 @@
             ]
         },
         {
+            "name": "abcmidi",
+            "buildsystem": "autotools",
+            "no-autogen": true,
+            "sources": [
+                {
+                    "type" : "git",
+                    "url": "https://github.com/sshlien/abcmidi.git"
+                }
+            ]
+        },
+        {
             "name" : "gabc",
             "builddir" : true,
             "buildsystem" : "meson",

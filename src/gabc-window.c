@@ -32,6 +32,7 @@ struct _GabcWindow
         GtkSourceBuffer     *buffer;
         GtkButton           *open_button;
         GtkButton           *engrave_button;
+        GtkButton           *play_button;
 };
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -60,12 +61,22 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self);
 
+static void
+gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self);
+
 const gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
 
 static void
 gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self);
 
+gchar *
+gabc_window_write_midi_file (gchar *file_path, GabcWindow *self);
+
+static void
+gabc_window_play_midi_file (gchar *file_path, GabcWindow *self);
 
 static void
 gabc_window_class_init (GabcWindowClass *klass)
@@ -87,6 +98,9 @@ gabc_window_class_init (GabcWindowClass *klass)
         gtk_widget_class_bind_template_child (widget_class,
                                               GabcWindow,
                                               engrave_button);
+        gtk_widget_class_bind_template_child (widget_class,
+                                              GabcWindow,
+                                              play_button);
 }
 
 
@@ -113,7 +127,14 @@ gabc_window_init (GabcWindow *self)
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (engrave_action));
 
-  // https://www.mail-archive.com/gnome-devtools@gnome.org/msg00448.html
+  g_autoptr (GSimpleAction) play_action = g_simple_action_new ("play", NULL);
+  g_signal_connect (play_action,
+                    "activate",
+                    G_CALLBACK (gabc_window_play_file),
+                    self);
+  g_action_map_add_action (G_ACTION_MAP (self),
+                         G_ACTION (play_action));
+
   self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
   g_object_ref (self->buffer);
 
@@ -234,23 +255,27 @@ open_file_complete (GObject          *source_object,
   gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
  }
 
+
 static void
 gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  g_print("engraving the file\n");
-  const gchar *fn = gabc_window_write_buffer_to_file(self);
-  gabc_window_open_ps_viewer(fn, self);
+  g_print ("engraving the file\n");
+  gchar *fn = gabc_window_write_buffer_to_file (self);
+  gabc_window_open_ps_viewer (fn, self);
 }
 
-// https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/class.FileSaver.html
-
-// https://github.com/GNOME/gtksourceview/blob/master/testsuite/test-file-saver.c
-//
-// https://developer.gnome.org/documentation/tutorials/beginners/getting_started/saving_files.html
-//
-//
+static void
+gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self)
+{
+  g_print ("playing the file\n");
+  gchar *abc_file_path = gabc_window_write_buffer_to_file (self);
+  gchar *midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
+  gabc_window_play_midi_file (midi_file_path, self);
+}
 
 
 const gchar *
@@ -310,7 +335,48 @@ gabc_window_open_ps_viewer (gchar *file_path, GabcWindow *self)
   //g_free (file_path);
   g_free (standard_output);
   g_free (standard_error);
+}
 
+
+gchar *
+gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
+{
+// For spawn
+  gchar *standard_output;
+  gchar *standard_error;
+
+  GError **error = NULL;
+  gint exit_status;
+  gboolean result;
+
+  const gchar *cmd[] = { "abc2midi", "gabc.abc", "-o", "gabc.mid", NULL };
+
+  result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
+                      G_SPAWN_SEARCH_PATH, NULL, NULL,
+                      &standard_output, &standard_error,
+                      &exit_status, error);
+
+  if (result != TRUE ) {
+    g_print ("abc2midi failed");
+  }
+
+  //g_free (file_path);
+  g_free (standard_output);
+  g_free (standard_error);
+
+  return "todo";
+}
+
+static void
+gabc_window_play_midi_file (gchar *file_path, GabcWindow *self)
+{
+
+  g_print ("%s",file_path);
+  // Use gtk file launcher to open the midi file
+  const char *media_file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.mid", NULL);
+  GFile *media_file = g_file_new_for_path (media_file_path);
+  GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
+  gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
 
 }
 

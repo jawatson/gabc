@@ -29,9 +29,15 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkButton"  id="engrave_button">
+              <object class="GtkButton"  id="play_button">
                 <property name="label">E</property>
                 <property name="action-name">win.engrave</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkButton"  id="engrave_button">
+                <property name="label">P</property>
+                <property name="action-name">win.play</property>
               </object>
             </child>
           </object>
@@ -79,3 +85,4 @@
     </section>
   </menu>
 </interface>
+
