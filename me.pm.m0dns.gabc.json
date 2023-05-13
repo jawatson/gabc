@@ -1,7 +1,7 @@
 {
     "app-id" : "me.pm.m0dns.gabc",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "master",
+    "runtime-version" : "44",
     "sdk" : "org.gnome.Sdk",
     "command" : "gabc",
     "finish-args" : [
