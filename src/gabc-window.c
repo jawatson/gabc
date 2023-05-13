@@ -66,13 +66,13 @@ gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self);
 
-const gchar *
+gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
 
 gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self);
 
-gchar *
+static gchar *
 gabc_window_write_midi_file (gchar *file_path, GabcWindow *self);
 
 static void
@@ -111,6 +111,7 @@ gabc_window_init (GabcWindow *self)
   GtkSourceLanguage *language = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
+
   g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
   g_signal_connect (open_action,
                     "activate",
@@ -139,7 +140,8 @@ gabc_window_init (GabcWindow *self)
   g_object_ref (self->buffer);
 
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
-  gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
+  //gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
+  gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   lm = gtk_source_language_manager_get_default();
   language = gtk_source_language_manager_get_language (lm,"abc");
@@ -180,6 +182,9 @@ gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
                         NULL,
                         file_open_callback,
                         G_OBJECT (self));
+
+  g_object_unref (abc_filter);
+  g_object_unref (filter_list);
 }
 
 
@@ -194,6 +199,7 @@ file_open_callback ( GObject* file_dialog,
   if (file) {
       open_file (self, file);
   }
+
   g_object_unref (file_dialog);
 }
 
@@ -261,9 +267,12 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  gchar *fn = gabc_window_write_buffer_to_file (self);
-  gchar *ps_file_path = gabc_window_write_ps_file (fn, self);
+  gchar *abc_file_path, *ps_file_path;
+  abc_file_path = gabc_window_write_buffer_to_file (self);
+  ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   gabc_window_play_media_file (ps_file_path, self);
+  g_free (abc_file_path);
+  g_free (ps_file_path);
 }
 
 static void
@@ -271,20 +280,23 @@ gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
-  gchar *abc_file_path = gabc_window_write_buffer_to_file (self);
-  gchar *midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
+  gchar *abc_file_path, *midi_file_path;
+  abc_file_path = gabc_window_write_buffer_to_file (self);
+  midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
   gabc_window_play_media_file (midi_file_path, self);
+  g_free (abc_file_path);
+  g_free (midi_file_path);
 }
 
 
-const gchar *
+gchar *
 gabc_window_write_buffer_to_file (GabcWindow *self)
 {
 
   GtkTextIter start;
   GtkTextIter end;
   char *text;
-  const gchar *file_path;
+  gchar *file_path;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
@@ -346,7 +358,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   ps_file_path = set_file_extension (file_path, "ps");
   abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
 
-  const gchar *cmd[] = { "abcm2ps", "-O=", abc_basename, NULL };
+  gchar *cmd[] = { "abcm2ps", "-O=", abc_basename, NULL };
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
@@ -359,17 +371,19 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
     g_clear_error (&error);
   }
 
+  g_print ("%s\n",standard_output);
+
   g_free (standard_output);
   g_free (standard_error);
+  g_free (abc_basename);
 
   return ps_file_path;
 }
 
 
-gchar *
+static gchar *
 gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 {
-  // For spawn
   gchar *standard_output;
   gchar *standard_error;
   GError *error = NULL;
@@ -384,7 +398,7 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   midi_file_path = set_file_extension (file_path, "mid");
   midi_basename = g_file_get_basename (g_file_new_for_path(midi_file_path));
 
-  const gchar *cmd[] = { "abc2midi", abc_basename, "-o", midi_basename, NULL };
+  const gchar *cmd[5] = { "abc2midi", abc_basename, "-o", midi_basename, NULL };
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
@@ -392,12 +406,17 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
                       &exit_status, &error);
 
   if (result != TRUE ) {
-    g_print ("abc2midi failed: %s", error->message);
+    g_print ("abc2midi failed: %s \n", error->message);
     g_clear_error (&error);
   }
 
+  g_print ("%s\n",standard_output);
+
+  g_free (standard_output);
+  g_free (standard_error);
   g_free (abc_basename);
   g_free (midi_basename);
+
   return midi_file_path;
 }
 
@@ -405,7 +424,6 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
 {
-  // Use gtk file launcher to open the midi file
   GFile *media_file = g_file_new_for_path ((char *)file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
   gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
