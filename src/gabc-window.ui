@@ -20,13 +20,13 @@
             </child>
             <child type="start">
               <object class="GtkButton"  id="play_button">
-                <property name="label">E</property>
+                <property name="icon-name">folder-music-symbolic</property>
                 <property name="action-name">win.engrave</property>
               </object>
             </child>
             <child type="start">
               <object class="GtkButton"  id="engrave_button">
-                <property name="label">P</property>
+                <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="action-name">win.play</property>
               </object>
             </child>
