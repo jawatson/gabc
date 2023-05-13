@@ -30,6 +30,7 @@ struct _GabcWindow
 	GtkHeaderBar        *header_bar;
 	GtkSourceView       *main_text_view;
         GtkSourceBuffer     *buffer;
+        GtkSourceFile       *source_file;
         GtkButton           *open_button;
         GtkButton           *engrave_button;
         GtkButton           *play_button;
@@ -48,9 +49,9 @@ file_open_callback ( GObject* source_object,
                       gpointer data);
 
 static void
-open_file_complete (GObject          *source_object,
-                    GAsyncResult     *result,
-                    GabcWindow       *self);
+open_file_cb (GObject      *object,
+             GAsyncResult *result,
+             gpointer      user_data);
 
 static void
 open_file (GabcWindow       *self,
@@ -136,6 +137,8 @@ gabc_window_init (GabcWindow *self)
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (play_action));
 
+  self->source_file = gtk_source_file_new();
+
   self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
   g_object_ref (self->buffer);
 
@@ -197,7 +200,7 @@ file_open_callback ( GObject* file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-      open_file (self, file);
+    open_file (self, file);
   }
 
   g_object_unref (file_dialog);
@@ -205,61 +208,35 @@ file_open_callback ( GObject* file_dialog,
 
 
 static void
+open_file_cb (GObject      *object,
+             GAsyncResult *result,
+             gpointer      user_data)
+{
+  GError *error = NULL;
+
+  if (!gtk_source_file_loader_load_finish (GTK_SOURCE_FILE_LOADER (object), result, &error))
+    g_printerr ("Error loading file: %s\n", error->message);
+
+  // Reposition the cursor so it's at the start of the text
+  //gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
+  //gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
+
+  g_clear_error (&error);
+}
+
+
+static void
 open_file (GabcWindow       *self,
            GFile            *file)
 {
-  g_file_load_contents_async (file,
-                              NULL,
-                              (GAsyncReadyCallback) open_file_complete,
-                              self);
+  gtk_source_file_set_location(GTK_SOURCE_FILE (self->source_file), file);
+  GtkSourceFileLoader *loader = gtk_source_file_loader_new (
+                                  GTK_SOURCE_BUFFER(self->buffer),
+                                  GTK_SOURCE_FILE (self->source_file));
+
+  gtk_source_file_loader_load_async ( loader, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, open_file_cb, NULL);
+
 }
-
-static void
-open_file_complete (GObject          *source_object,
-                    GAsyncResult     *result,
-                    GabcWindow       *self)
-{
-  GFile *file = G_FILE (source_object);
-  GtkTextIter start;
-
-  g_autofree char *contents = NULL;
-  gsize length = 0;
-
-  g_autoptr (GError) error = NULL;
-
-  // Complete the asynchronous operation; this function will either
-  // give you the contents of the file as a byte array, or will
-  // set the error argument
-  g_file_load_contents_finish (file,
-                               result,
-                               &contents,
-                               &length,
-                               NULL,
-                               &error);
-
-  // In case of error, print a warning to the standard error output
-  if (error != NULL)
-    {	g_object_ref (self->buffer);
-      g_printerr ("Unable to open “%s”: %s\n",
-                  g_file_peek_path (file),
-                  error->message);
-      return;
-    }
-  // Ensure that the file is encoded with UTF-8
-  if (!g_utf8_validate (contents, length, NULL))
-  {
-    g_printerr ("Unable to load the contents of “%s”: "
-                "the file is not encoded with UTF-8\n",
-                g_file_peek_path (file));
-    return;
-  }
-  // Set the text using the contents of the file
-  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), contents, length);
-
-  // Reposition the cursor so it's at the start of the text
-  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
-  gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
- }
 
 
 static void
