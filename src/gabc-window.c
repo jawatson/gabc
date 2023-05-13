@@ -55,9 +55,9 @@ file_open_callback ( GObject* source_object,
                       gpointer data);
 
 static void
-open_file_cb (GObject      *object,
-             GAsyncResult *result,
-             gpointer      user_data);
+open_file_cb (GtkSourceFileLoader *loader,
+              GAsyncResult        *result,
+              GabcWindow          *self);
 
 static void
 open_file (GabcWindow       *self,
@@ -114,7 +114,7 @@ gabc_window_class_init (GabcWindowClass *klass)
 static void
 gabc_window_init (GabcWindow *self)
 {
-  GtkSourceLanguageManager *lm;
+  GtkSourceLanguageManager *lm = NULL;
   GtkSourceLanguage *language = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (self));
@@ -169,6 +169,7 @@ gabc_window_init (GabcWindow *self)
   else
   {
     gtk_source_buffer_set_language (self->buffer, language);
+    g_object_unref (language);
   }
 }
 
@@ -222,20 +223,28 @@ file_open_callback ( GObject* file_dialog,
 
 
 static void
-open_file_cb (GObject      *object,
-             GAsyncResult *result,
-             gpointer      user_data)
+open_file_cb (GtkSourceFileLoader *loader,
+              GAsyncResult        *result,
+              GabcWindow          *self)
 {
+  GtkTextIter start;
   GError *error = NULL;
 
-  if (!gtk_source_file_loader_load_finish (GTK_SOURCE_FILE_LOADER (object), result, &error))
+  if (!gtk_source_file_loader_load_finish (loader, result, &error))
+  {
     g_printerr ("Error loading file: %s\n", error->message);
+    g_clear_error (&error);
+  }
+  else
+  {
+    // Reposition the cursor so it's at the start of the text
+    gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
+    gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
+    gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
+  }
 
-  // Reposition the cursor so it's at the start of the text
-  //gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
-  //gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
+  g_object_unref (loader);
 
-  g_clear_error (&error);
 }
 
 
@@ -248,38 +257,43 @@ open_file (GabcWindow       *self,
                                   GTK_SOURCE_BUFFER(self->buffer),
                                   GTK_SOURCE_FILE (self->source_file));
 
-  gtk_source_file_loader_load_async ( loader, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, open_file_cb, NULL);
-
+  gtk_source_file_loader_load_async (loader,
+                                     G_PRIORITY_DEFAULT,
+                                     NULL, NULL, NULL, NULL,
+                                     (GAsyncReadyCallback) open_file_cb,
+                                     self);
 }
 
 static void
-save_file_cb (
-  GObject* source_object,
-  GAsyncResult* res,
-  gpointer data
-)
-
+save_file_cb (GObject       *object,
+              GAsyncResult  *result,
+              gpointer      user_data)
 {
-  g_print ("in the callback");
-  g_print (" I should probably clean up now");
+  GError *error = NULL;
+
+  if (!gtk_source_file_saver_save_finish (GTK_SOURCE_FILE_SAVER (object), result, &error))
+  {
+    g_printerr ("Error saving file: %s\n", error->message);
+  }
+  g_clear_error (&error);
 }
 
 
 
 static void
 gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self)
+                       GVariant   *parameter G_GNUC_UNUSED,
+                       GabcWindow *self)
 {
-  g_print ("saving the file");
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (self->buffer, self->source_file);
   gtk_source_file_saver_save_async (saver, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, save_file_cb, NULL);
 
+  g_object_unref (saver);
 }
 
 
 static void
-gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
+gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self)
 {
@@ -287,19 +301,21 @@ gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   gabc_window_play_media_file (ps_file_path, self);
+
   g_free (abc_file_path);
   g_free (ps_file_path);
 }
 
 static void
-gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self)
+gabc_window_play_file  (GAction     *action G_GNUC_UNUSED,
+                        GVariant    *parameter G_GNUC_UNUSED,
+                        GabcWindow  *self)
 {
   gchar *abc_file_path, *midi_file_path;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
   gabc_window_play_media_file (midi_file_path, self);
+
   g_free (abc_file_path);
   g_free (midi_file_path);
 }
@@ -444,6 +460,7 @@ gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
   gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
 }
+
 
 
 
