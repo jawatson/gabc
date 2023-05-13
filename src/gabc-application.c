@@ -121,6 +121,9 @@ gabc_application_init (GabcApplication *self)
                                          "win.open",
                                          (const char *[]) { "<Ctrl>o", NULL });
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "win.save",
+                                         (const char *[]) { "<Ctrl>s", NULL });
+        gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.engrave",
                                          (const char *[]) { "<Ctrl>e", NULL });
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),

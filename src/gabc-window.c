@@ -32,6 +32,7 @@ struct _GabcWindow
         GtkSourceBuffer     *buffer;
         GtkSourceFile       *source_file;
         GtkButton           *open_button;
+        GtkButton           *save_button;
         GtkButton           *engrave_button;
         GtkButton           *play_button;
 };
@@ -39,9 +40,14 @@ struct _GabcWindow
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 static void
-gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
+gabc_window_open_file_dialog (GAction    *action G_GNUC_UNUSED,
                               GVariant    *parameter G_GNUC_UNUSED,
                               GabcWindow  *self);
+
+static void
+gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self);
 
 static void
 file_open_callback ( GObject* source_object,
@@ -116,10 +122,18 @@ gabc_window_init (GabcWindow *self)
   g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
   g_signal_connect (open_action,
                     "activate",
-                    G_CALLBACK (gabc_window__open_file_dialog),
+                    G_CALLBACK (gabc_window_open_file_dialog),
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (open_action));
+
+  g_autoptr (GSimpleAction) save_action = g_simple_action_new ("save", NULL);
+  g_signal_connect (save_action,
+                    "activate",
+                    G_CALLBACK (gabc_window_save_file),
+                    self);
+  g_action_map_add_action (G_ACTION_MAP (self),
+                         G_ACTION (save_action));
 
   g_autoptr (GSimpleAction) engrave_action = g_simple_action_new ("engrave", NULL);
   g_signal_connect (engrave_action,
@@ -160,7 +174,7 @@ gabc_window_init (GabcWindow *self)
 
 
 static void
-gabc_window__open_file_dialog (GAction    *action G_GNUC_UNUSED,
+gabc_window_open_file_dialog (GAction    *action G_GNUC_UNUSED,
                               GVariant    *parameter G_GNUC_UNUSED,
                               GabcWindow  *self)
 {
@@ -235,6 +249,31 @@ open_file (GabcWindow       *self,
                                   GTK_SOURCE_FILE (self->source_file));
 
   gtk_source_file_loader_load_async ( loader, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, open_file_cb, NULL);
+
+}
+
+static void
+save_file_cb (
+  GObject* source_object,
+  GAsyncResult* res,
+  gpointer data
+)
+
+{
+  g_print ("in the callback");
+  g_print (" I should probably clean up now");
+}
+
+
+
+static void
+gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
+                          GVariant    *parameter G_GNUC_UNUSED,
+                          GabcWindow  *self)
+{
+  g_print ("saving the file");
+  GtkSourceFileSaver *saver = gtk_source_file_saver_new (self->buffer, self->source_file);
+  gtk_source_file_saver_save_async (saver, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, save_file_cb, NULL);
 
 }
 

@@ -18,6 +18,18 @@
                 <property name="action-name">win.open</property>
               </object>
             </child>
+            <child type="start">
+              <object class="GtkButton"  id="play_button">
+                <property name="label">E</property>
+                <property name="action-name">win.engrave</property>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkButton"  id="engrave_button">
+                <property name="label">P</property>
+                <property name="action-name">win.play</property>
+              </object>
+            </child>
 
             <child type="end">
               <object class="GtkMenuButton">
@@ -29,15 +41,9 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkButton"  id="play_button">
-                <property name="label">E</property>
-                <property name="action-name">win.engrave</property>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkButton"  id="engrave_button">
-                <property name="label">P</property>
-                <property name="action-name">win.play</property>
+              <object class="GtkButton"  id="save_button">
+                <property name="label">Save</property>
+                <property name="action-name">win.save</property>
               </object>
             </child>
           </object>
