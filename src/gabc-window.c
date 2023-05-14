@@ -64,13 +64,13 @@ open_file (GabcWindow       *self,
            GFile            *file);
 
 static void
-gabc_window_engrave_file (GAction    *action G_GNUC_UNUSED,
+gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
                           GVariant    *parameter G_GNUC_UNUSED,
                           GabcWindow  *self);
 
 static void
 gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
+                        GVariant   *parameter G_GNUC_UNUSED,
                           GabcWindow  *self);
 
 gchar *
@@ -265,17 +265,19 @@ open_file (GabcWindow       *self,
 }
 
 static void
-save_file_cb (GObject       *object,
-              GAsyncResult  *result,
-              gpointer      user_data)
+save_file_cb (GtkSourceFileSaver *saver,
+              GAsyncResult        *result,
+              GabcWindow          *self)
+
 {
   GError *error = NULL;
 
-  if (!gtk_source_file_saver_save_finish (GTK_SOURCE_FILE_SAVER (object), result, &error))
+  if (!gtk_source_file_saver_save_finish (saver, result, &error))
   {
     g_printerr ("Error saving file: %s\n", error->message);
+    g_clear_error (&error);
   }
-  g_clear_error (&error);
+  g_object_unref (saver);
 }
 
 
@@ -286,9 +288,11 @@ gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
                        GabcWindow *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (self->buffer, self->source_file);
-  gtk_source_file_saver_save_async (saver, G_PRIORITY_DEFAULT, NULL, NULL, NULL, NULL, save_file_cb, NULL);
-
-  g_object_unref (saver);
+  gtk_source_file_saver_save_async (saver,
+                                    G_PRIORITY_DEFAULT,
+                                    NULL, NULL, NULL, NULL,
+                                    (GAsyncReadyCallback) save_file_cb,
+                                    NULL);
 }
 
 
@@ -460,6 +464,7 @@ gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
   gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
 }
+
 
 
 
