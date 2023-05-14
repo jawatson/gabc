@@ -114,9 +114,6 @@ gabc_window_class_init (GabcWindowClass *klass)
 static void
 gabc_window_init (GabcWindow *self)
 {
-  GtkSourceLanguageManager *lm = NULL;
-  GtkSourceLanguage *language = NULL;
-
   gtk_widget_init_template (GTK_WIDGET (self));
 
   g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
@@ -160,17 +157,7 @@ gabc_window_init (GabcWindow *self)
   //gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
-  lm = gtk_source_language_manager_get_default();
-  language = gtk_source_language_manager_get_language (lm,"abc");
-  if (language == NULL)
-  {
-    g_print ("No language found for mime type '%s'\n", "abc");
-  }
-  else
-  {
-    gtk_source_buffer_set_language (self->buffer, language);
-    g_object_unref (language);
-  }
+
 }
 
 
@@ -227,8 +214,12 @@ open_file_cb (GtkSourceFileLoader *loader,
               GAsyncResult        *result,
               GabcWindow          *self)
 {
+  GtkSourceLanguageManager *lm;
+  GtkSourceLanguage *language;
+
   GtkTextIter start;
   GError *error = NULL;
+
 
   if (!gtk_source_file_loader_load_finish (loader, result, &error))
   {
@@ -243,8 +234,18 @@ open_file_cb (GtkSourceFileLoader *loader,
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
   }
 
-  g_object_unref (loader);
+  lm = gtk_source_language_manager_get_default();
+  language = gtk_source_language_manager_get_language (lm, "abc");
+  if (language == NULL)
+  {
+    g_print ("No language found for language id '%s'\n", "abc");
+  }
+  else
+  {
+    gtk_source_buffer_set_language (self->buffer, language);
+  }
 
+  g_object_unref (loader);
 }
 
 
@@ -463,7 +464,7 @@ play_media_cb (GtkFileLauncher *launcher,
 {
   GError *error = NULL;
 
-  if (!gtk_file_launcher_launch_finish (saver, result, &error))
+  if (!gtk_file_launcher_launch_finish (launcher, result, &error))
   {
     g_printerr ("Error viewing file: %s\n", error->message);
     g_clear_error (&error);
