@@ -266,8 +266,8 @@ open_file (GabcWindow       *self,
 
 static void
 save_file_cb (GtkSourceFileSaver *saver,
-              GAsyncResult        *result,
-              GabcWindow          *self)
+              GAsyncResult       *result,
+              GabcWindow         *self)
 
 {
   GError *error = NULL;
@@ -321,7 +321,7 @@ gabc_window_play_file  (GAction     *action G_GNUC_UNUSED,
   gabc_window_play_media_file (midi_file_path, self);
 
   g_free (abc_file_path);
-  g_free (midi_file_path);
+  //g_free (midi_file_path);
 }
 
 
@@ -456,13 +456,34 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   return midi_file_path;
 }
 
+static void
+play_media_cb (GtkFileLauncher *launcher,
+               GAsyncResult    *result,
+               gpointer         data)
+{
+  GError *error = NULL;
+
+  if (!gtk_file_launcher_launch_finish (saver, result, &error))
+  {
+    g_printerr ("Error viewing file: %s\n", error->message);
+    g_clear_error (&error);
+  }
+  g_object_unref (launcher);
+}
 
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
 {
   GFile *media_file = g_file_new_for_path ((char *)file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
-  gtk_file_launcher_launch (launcher, GTK_WINDOW (self), NULL, NULL, NULL);
+  gtk_file_launcher_launch (launcher,
+                            GTK_WINDOW (self),
+                            NULL,
+                            (GAsyncReadyCallback) play_media_cb,
+                            NULL);
+
+  g_free (file_path);
+  g_object_unref (media_file);
 }
 
 
