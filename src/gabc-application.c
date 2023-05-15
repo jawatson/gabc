@@ -129,5 +129,8 @@ gabc_application_init (GabcApplication *self)
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.play",
                                          (const char *[]) { "<Ctrl>p", NULL });
+        gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "win.show_log",
+                                         (const char *[]) { "<Ctrl>l", NULL });
 }
 

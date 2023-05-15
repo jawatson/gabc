@@ -35,24 +35,27 @@ struct _GabcWindow
         GtkButton           *save_button;
         GtkButton           *engrave_button;
         GtkButton           *play_button;
+
+        GtkWindow           *log_window;
+        GtkTextBuffer       *log_text_buffer;
 };
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 static void
-gabc_window_open_file_dialog (GAction    *action G_GNUC_UNUSED,
+gabc_window_open_file_dialog (GAction     *action G_GNUC_UNUSED,
                               GVariant    *parameter G_GNUC_UNUSED,
                               GabcWindow  *self);
 
 static void
-gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self);
+gabc_window_save_file (GAction     *action G_GNUC_UNUSED,
+                       GVariant    *parameter G_GNUC_UNUSED,
+                       GabcWindow  *self);
 
 static void
-file_open_callback ( GObject* source_object,
-                      GAsyncResult* res,
-                      gpointer data);
+file_open_callback ( GObject      *source_object,
+                     GAsyncResult *res,
+                     gpointer      data);
 
 static void
 open_file_cb (GtkSourceFileLoader *loader,
@@ -71,7 +74,7 @@ gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
 static void
 gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
                         GVariant   *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self);
+                        GabcWindow *self);
 
 gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
@@ -84,6 +87,22 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self);
 
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self);
+
+
+static void
+log_window_init(GabcWindow *parent);
+
+static void
+gabc_window_open_log_dialog (GSimpleAction *action,
+                               GVariant    *parameter,
+                               gpointer     user_data);
+
+static void
+log_window_append_to_log (gchar *text);
+
+/*
+ * END OF DECLARATIONS
+ */
 
 static void
 gabc_window_class_init (GabcWindowClass *klass)
@@ -110,11 +129,20 @@ gabc_window_class_init (GabcWindowClass *klass)
                                               play_button);
 }
 
+static const GActionEntry win_actions[] = {
+	{ "open-log", gabc_window_open_log_dialog },
+};
 
 static void
 gabc_window_init (GabcWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  g_action_map_add_action_entries (G_ACTION_MAP (self),
+	                           win_actions,
+	                           G_N_ELEMENTS (win_actions),
+	                           self);
+
 
   g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
   g_signal_connect (open_action,
@@ -146,7 +174,9 @@ gabc_window_init (GabcWindow *self)
                     G_CALLBACK (gabc_window_play_file),
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
-                         G_ACTION (play_action));
+                           G_ACTION     (play_action));
+
+
 
   self->source_file = gtk_source_file_new();
 
@@ -157,14 +187,15 @@ gabc_window_init (GabcWindow *self)
   //gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
+  log_window_init(self);
 
 }
 
 
 static void
-gabc_window_open_file_dialog (GAction    *action G_GNUC_UNUSED,
-                              GVariant    *parameter G_GNUC_UNUSED,
-                              GabcWindow  *self)
+gabc_window_open_file_dialog (GAction    *action      G_GNUC_UNUSED,
+                              GVariant    *parameter  G_GNUC_UNUSED,
+                              GabcWindow             *self)
 {
   GtkFileDialog *gfd;
   GtkFileFilter *abc_filter;
@@ -194,9 +225,9 @@ gabc_window_open_file_dialog (GAction    *action G_GNUC_UNUSED,
 
 
 static void
-file_open_callback ( GObject* file_dialog,
-                      GAsyncResult* res,
-                      gpointer self)
+file_open_callback ( GObject       *file_dialog,
+                     GAsyncResult  *res,
+                     gpointer       self)
 {
   g_autoptr (GFile) file = gtk_file_dialog_open_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
@@ -408,7 +439,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
     g_clear_error (&error);
   }
 
-  g_print ("%s\n",standard_output);
+  gtk_text_buffer_insert_at_cursor (self->log_text_buffer, standard_output, -1);
 
   g_free (standard_output);
   g_free (standard_error);
@@ -447,7 +478,7 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
     g_clear_error (&error);
   }
 
-  g_print ("%s\n",standard_output);
+  gtk_text_buffer_insert_at_cursor (self->log_text_buffer, standard_output, -1);
 
   g_free (standard_output);
   g_free (standard_error);
@@ -482,12 +513,59 @@ gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
                             NULL,
                             (GAsyncReadyCallback) play_media_cb,
                             NULL);
-
-  g_free (file_path);
   g_object_unref (media_file);
 }
 
+/*
+ * LOG DIALOG
+ */
 
+static void
+gabc_window_open_log_dialog (GSimpleAction *action,
+                             GVariant      *parameter,
+                             gpointer       user_data)
+{
+  GabcWindow *parent = user_data;
+  g_assert (GABC_IS_WINDOW (parent));
+  gtk_widget_show (GTK_WIDGET (parent->log_window));
+}
 
+static void
+log_window_init(GabcWindow *parent)
+{
+  //GtkWindow *log_window;
+  GtkTextView *log_text_view;
+  //GtkTextBuffer *log_buffer;
+  GtkScrolledWindow *scrolled_window;
+
+  //GabcWindow *parent = user_data;
+  g_assert (GABC_IS_WINDOW (parent));
+
+  parent->log_window = GTK_WINDOW (gtk_window_new());
+  gtk_window_set_title (parent->log_window, "Log Viewer");
+  gtk_window_set_destroy_with_parent (parent->log_window, true);
+
+  log_text_view = GTK_TEXT_VIEW (gtk_text_view_new ());
+  parent->log_text_buffer = gtk_text_view_get_buffer(log_text_view);
+  gtk_text_view_set_left_margin (GTK_TEXT_VIEW (log_text_view), 10);
+  gtk_text_view_set_right_margin (GTK_TEXT_VIEW (log_text_view), 10);
+  scrolled_window = GTK_SCROLLED_WINDOW (gtk_scrolled_window_new ());
+  gtk_scrolled_window_set_child (scrolled_window, GTK_WIDGET (log_text_view));
+  gtk_scrolled_window_set_min_content_width (scrolled_window, 600);
+  gtk_scrolled_window_set_min_content_height (scrolled_window, 600);
+  gtk_scrolled_window_set_policy (scrolled_window ,
+                                  GTK_POLICY_AUTOMATIC,
+                                  GTK_POLICY_ALWAYS) ;
+
+ // Ensure that the dialog box is destroyed when the user responds
+
+ //g_signal_connect_swapped (dialog,
+ //                          "response",
+ //                          G_CALLBACK (gtk_window_destroy),
+ //                          dialog);
+
+ gtk_window_set_child (parent->log_window, GTK_WIDGET (scrolled_window));
+
+}
 
 
