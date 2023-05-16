@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.10.3" target_tk="gtk-4.0">
+  <ui>
+	(1,1,"gabc-log-window.ui","gabc-log-window.ui",None,None,None,None,None,None)
+  </ui>
+  <ui_library>
+	(1,"gtk","4.6",None)
+  </ui_library>
+  <object>
+	(1,1,"AdwWindow","GabcLogWindow",None,None,None,None,None),
+	(1,2,"GtkBox",None,1,None,None,None,None),
+	(1,7,"GtkTextBuffer","log_buffer",None,None,None,None,None),
+	(1,8,"GtkHeaderBar",None,2,None,None,None,1),
+	(1,9,"GtkButton","log_clear_button",8,None,None,None,None),
+	(1,10,"GtkScrolledWindow",None,2,None,None,None,1),
+	(1,11,"GtkTextView","log-text-view",10,None,None,None,None)
+  </object>
+  <object_property>
+	(1,1,"GtkWindow","default-height","500",None,None,None,None,None),
+	(1,1,"GtkWindow","default-width","400",None,None,None,None,None),
+	(1,1,"GtkWindow","destroy-with-parent","True",None,None,None,None,None),
+	(1,1,"GtkWindow","hide-on-close","True",None,None,None,None,None),
+	(1,2,"GtkAccessible","accessible-role","radio-group",None,None,None,None,None),
+	(1,2,"GtkOrientable","orientation","vertical",None,None,None,None,None),
+	(1,9,"GtkActionable","action-name","log.clear",None,None,None,None,None),
+	(1,9,"GtkButton","icon-name","edit-clear-all-symbolic",None,None,None,None,None),
+	(1,10,"GtkScrolledWindow","min-content-height","300",None,None,None,None,None),
+	(1,10,"GtkScrolledWindow","vscrollbar-policy","always",None,None,None,None,None),
+	(1,10,"GtkWidget","hexpand","True",None,None,None,None,None),
+	(1,10,"GtkWidget","vexpand","True",None,None,None,None,None),
+	(1,11,"GtkTextView","bottom-margin","6",None,None,None,None,None),
+	(1,11,"GtkTextView","buffer","7",None,None,None,None,None),
+	(1,11,"GtkTextView","cursor-visible","False",None,None,None,None,None),
+	(1,11,"GtkTextView","editable","False",None,None,None,None,None),
+	(1,11,"GtkTextView","left-margin","6",None,None,None,None,None),
+	(1,11,"GtkTextView","monospace","True",None,None,None,None,None),
+	(1,11,"GtkTextView","right-margin","6",None,None,None,None,None),
+	(1,11,"GtkTextView","top-margin","6",None,None,None,None,None),
+	(1,11,"GtkWidget","hexpand","True",None,None,None,None,None),
+	(1,11,"GtkWidget","vexpand","True",None,None,None,None,None)
+  </object_property>
+</cambalache-project>

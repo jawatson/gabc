@@ -10,7 +10,7 @@ G_BEGIN_DECLS
 
 #define GABC_LOG_WINDOW_TYPE (gabc_log_window_get_type ())
 
-G_DECLARE_FINAL_TYPE (GabcLogWindow, gabc_log_window, GABC, LOG_WINDOW, GtkWindow)
+G_DECLARE_FINAL_TYPE (GabcLogWindow, gabc_log_window, GABC, LOG_WINDOW, AdwWindow)
 
 GabcLogWindow        *gabc_log_window_new          (GabcWindow *win);
 

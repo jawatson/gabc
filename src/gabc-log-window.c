@@ -5,13 +5,13 @@
 
 struct _GabcLogWindow
 {
-  GtkWindow parent;
+  AdwWindow parent;
 
   GtkTextBuffer *log_buffer;
 
 };
 
-G_DEFINE_TYPE (GabcLogWindow, gabc_log_window, GTK_TYPE_WINDOW)
+G_DEFINE_TYPE (GabcLogWindow, gabc_log_window, ADW_TYPE_WINDOW)
 
 void
 gabc_log_window_append_to_log (GabcLogWindow *self, char *text)
@@ -49,7 +49,6 @@ gabc_log_window_new (GabcWindow *win)
 {
   return g_object_new (GABC_LOG_WINDOW_TYPE, "transient-for", win,
                                              "title", "Log Viewer",
-                                             "resizable", true,
                                              "hide-on-close", true,
                                              "destroy_with_parent", true,
                                              NULL);
