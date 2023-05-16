@@ -2,6 +2,7 @@ gabc_sources = [
   'main.c',
   'gabc-application.c',
   'gabc-window.c',
+  'gabc-log-window.c'
 ]
 
 gabc_deps = [
