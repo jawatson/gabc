@@ -15,6 +15,6 @@ G_DECLARE_FINAL_TYPE (GabcLogWindow, gabc_log_window, GABC, LOG_WINDOW, GtkWindo
 GabcLogWindow        *gabc_log_window_new          (GabcWindow *win);
 
 void
-gabc_log_window_append (GabcLogWindow *self, gchar *text);
+gabc_log_window_append_to_log (GabcLogWindow *self, gchar *text);
 
 G_END_DECLS

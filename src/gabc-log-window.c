@@ -14,7 +14,7 @@ struct _GabcLogWindow
 G_DEFINE_TYPE (GabcLogWindow, gabc_log_window, GTK_TYPE_WINDOW)
 
 void
-gabc_log_window_append (GabcLogWindow *self, char *text)
+gabc_log_window_append_to_log (GabcLogWindow *self, char *text)
 {
   gtk_text_buffer_insert_at_cursor (self->log_buffer, text, -1);
   gtk_text_buffer_insert_at_cursor (self->log_buffer, "\n", -1);
@@ -25,14 +25,11 @@ gabc_log_window_init (GabcLogWindow *win)
 {
   //gtk_widget_init_template (GTK_WIDGET (win));
 
-  //GtkWindow *log_window;
   GtkTextView *log_text_view;
   GtkScrolledWindow *scrolled_window;
 
-  //GabcWindow *parent = user_data;
-  //g_assert (GABC_IS_WINDOW (parent));
-
   log_text_view = GTK_TEXT_VIEW (gtk_text_view_new ());
+  gtk_text_view_set_editable(log_text_view, false);
   gtk_text_view_set_monospace (log_text_view, true);
   gtk_text_view_set_left_margin (log_text_view, 10);
   gtk_text_view_set_right_margin (log_text_view, 10);
@@ -64,7 +61,7 @@ gabc_log_window_new (GabcWindow *win)
   return g_object_new (GABC_LOG_WINDOW_TYPE, "transient-for", win,
                                              "title", "Log Viewer",
                                              "resizable", true,
-                                             "destroy_with_parent", true,
                                              "hide-on-close", true,
+                                             "destroy_with_parent", true,
                                              NULL);
 }

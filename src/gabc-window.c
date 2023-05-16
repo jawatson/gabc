@@ -308,7 +308,9 @@ gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
                        GVariant   *parameter G_GNUC_UNUSED,
                        GabcWindow *self)
 {
-  GtkSourceFileSaver *saver = gtk_source_file_saver_new (self->buffer, self->source_file);
+  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
+                                                  self->buffer,
+                                                  self->source_file);
   gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
                                     NULL, NULL, NULL, NULL,
@@ -342,7 +344,7 @@ gabc_window_play_file  (GAction     *action G_GNUC_UNUSED,
   gabc_window_play_media_file (midi_file_path, self);
 
   g_free (abc_file_path);
-  //g_free (midi_file_path);
+  g_free (midi_file_path);
 }
 
 
@@ -402,12 +404,10 @@ set_file_extension (gchar *file_path, gchar *extension)
 gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 {
-  // For spawn
   gchar *standard_output;
   gchar *standard_error;
-
-  GError *error = NULL;
   gint exit_status;
+  GError *error = NULL;
   gboolean result;
 
   gchar *ps_file_path;
@@ -425,12 +425,11 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   if (result != TRUE )
   {
-    g_print ("abcm2ps failed: %s \n", error->message);
-    gabc_log_window_append (self->log_window, error->message);
+    gabc_log_window_append_to_log (self->log_window, error->message);
     g_clear_error (&error);
   }
 
-  gabc_log_window_append (self->log_window, standard_output);
+  gabc_log_window_append_to_log (self->log_window, standard_output);
 
   g_free (standard_output);
   g_free (standard_error);
@@ -465,12 +464,11 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
                       &exit_status, &error);
 
   if (result != TRUE ) {
-    g_print ("abc2midi failed: %s \n", error->message);
-    gabc_log_window_append (self->log_window, error->message);
+    gabc_log_window_append_to_log (self->log_window, error->message);
     g_clear_error (&error);
   }
 
-  gabc_log_window_append (self->log_window, standard_output);
+  gabc_log_window_append_to_log (self->log_window, standard_output);
 
   g_free (standard_output);
   g_free (standard_error);
@@ -487,13 +485,12 @@ play_media_cb (GtkFileLauncher *launcher,
                gpointer         data)
 {
   GError *error = NULL;
-  //GabcWindow self = data;
+  GabcWindow *self = GABC_WINDOW(data);
   //g_assert (GABC_IS_WINDOW (self));
 
   if (!gtk_file_launcher_launch_finish (launcher, result, &error))
   {
-    g_printerr ("Error viewing file: %s\n", error->message);
-    //gabc_log_window_append (GABC_LOG_WINDOW(self->log_window), error->message);
+    gabc_log_window_append_to_log (self->log_window, error->message);
     g_clear_error (&error);
   }
   g_object_unref (launcher);
