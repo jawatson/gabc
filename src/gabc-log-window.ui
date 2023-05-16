@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.10.3 -->
+<interface>
+  <!-- interface-name gabc-log-dialog.ui -->
+  <requires lib="gtk" version="4.6"/>
+  <template class="GabcLogWindow" parent="GtkWindow">
+  <object class="GtkTextBuffer" id="log_buffer">
+    <property name="text">this is the log</property>
+  </object>
+    <property name="default-width">300</property>
+    <property name="default-height">500</property>
+    <child>
+      <object class="GtkBox">
+        <property name="accessible-role">radio-group</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="vscrollbar-policy">always</property>
+            <child>
+              <object class="GtkTextView" id="log-text-view">
+                <property name="buffer">log_buffer</property>
+                <property name="monospace">True</property>
+                <property name="editable">False</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkBox">
+            <child>
+              <object class="GtkButton" id="log-delete-button">
+                <property name="label">Delete</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <child>
+                  <object class="GtkButton" id="log-close-button">
+                    <property name="label">Close</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+
+  </template>
+</interface>
