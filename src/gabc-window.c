@@ -31,7 +31,7 @@ struct _GabcWindow
 	GtkHeaderBar        *header_bar;
 	GtkSourceView       *main_text_view;
         GtkSourceBuffer     *buffer;
-        GtkSourceFile       *source_file;
+        GtkSourceFile       *abc_source_file;
         GtkButton           *open_button;
         GtkButton           *save_button;
         GtkButton           *engrave_button;
@@ -48,14 +48,14 @@ gabc_window_open_file_dialog (GAction     *action G_GNUC_UNUSED,
                               GabcWindow  *self);
 
 static void
-gabc_window_save_file (GAction     *action G_GNUC_UNUSED,
-                       GVariant    *parameter G_GNUC_UNUSED,
-                       GabcWindow  *self);
+gabc_window_save_file_handler (GAction     *action G_GNUC_UNUSED,
+                               GVariant    *parameter G_GNUC_UNUSED,
+                               GabcWindow  *self);
 
 static void
-file_open_callback ( GObject      *source_object,
-                     GAsyncResult *res,
-                     gpointer      data);
+file_open_cb (GObject      *source_object,
+              GAsyncResult *res,
+              gpointer      data);
 
 static void
 open_file_cb (GtkSourceFileLoader *loader,
@@ -92,6 +92,13 @@ static void
 gabc_window_open_log_dialog (GSimpleAction *action,
                              GVariant      *parameter,
                              gpointer       user_data);
+
+// General Utilities
+GtkFileFilter *
+get_abc_file_filter (void);
+
+GListStore *
+get_abc_filter_list (GtkFileFilter *abc_filter);
 
 /*
  * END OF DECLARATIONS
@@ -147,7 +154,7 @@ gabc_window_init (GabcWindow *self)
   g_autoptr (GSimpleAction) save_action = g_simple_action_new ("save", NULL);
   g_signal_connect (save_action,
                     "activate",
-                    G_CALLBACK (gabc_window_save_file),
+                    G_CALLBACK (gabc_window_save_file_handler),
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (save_action));
@@ -168,7 +175,7 @@ gabc_window_init (GabcWindow *self)
   g_action_map_add_action (G_ACTION_MAP (self),
                            G_ACTION     (play_action));
 
-  self->source_file = gtk_source_file_new();
+  self->abc_source_file = gtk_source_file_new();
 
   self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
   g_object_ref (self->buffer);
@@ -179,6 +186,25 @@ gabc_window_init (GabcWindow *self)
 
   self->log_window = gabc_log_window_new(self);
 
+}
+
+GtkFileFilter *
+get_abc_file_filter (void)
+{
+  GtkFileFilter *abc_filter;
+  abc_filter = gtk_file_filter_new();
+  gtk_file_filter_add_pattern(abc_filter, "*.abc");
+  return abc_filter;
+}
+
+
+GListStore *
+get_abc_filter_list (GtkFileFilter *abc_filter)
+{
+  GListStore *filter_list;
+  filter_list = g_list_store_new( G_TYPE_OBJECT );
+  g_list_store_append (filter_list, G_OBJECT (abc_filter));
+  return filter_list;
 }
 
 
@@ -194,11 +220,8 @@ gabc_window_open_file_dialog (GAction    *action      G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Open abc File");
 
-  abc_filter = gtk_file_filter_new();
-  gtk_file_filter_add_pattern(abc_filter, "*.abc");
-
-  filter_list = g_list_store_new( G_TYPE_OBJECT );
-  g_list_store_append (filter_list, G_OBJECT (abc_filter));
+  abc_filter = get_abc_file_filter();
+  filter_list = get_abc_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -206,7 +229,7 @@ gabc_window_open_file_dialog (GAction    *action      G_GNUC_UNUSED,
   gtk_file_dialog_open (gfd,
                         GTK_WINDOW (self),
                         NULL,
-                        file_open_callback,
+                        file_open_cb,
                         G_OBJECT (self));
 
   g_object_unref (abc_filter);
@@ -215,7 +238,7 @@ gabc_window_open_file_dialog (GAction    *action      G_GNUC_UNUSED,
 
 
 static void
-file_open_callback ( GObject       *file_dialog,
+file_open_cb ( GObject       *file_dialog,
                      GAsyncResult  *res,
                      gpointer       self)
 {
@@ -274,10 +297,10 @@ static void
 open_file (GabcWindow       *self,
            GFile            *file)
 {
-  gtk_source_file_set_location(GTK_SOURCE_FILE (self->source_file), file);
+  gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
   GtkSourceFileLoader *loader = gtk_source_file_loader_new (
                                   GTK_SOURCE_BUFFER(self->buffer),
-                                  GTK_SOURCE_FILE (self->source_file));
+                                  GTK_SOURCE_FILE (self->abc_source_file));
 
   gtk_source_file_loader_load_async (loader,
                                      G_PRIORITY_DEFAULT,
@@ -304,18 +327,25 @@ save_file_cb (GtkSourceFileSaver *saver,
 
 
 static void
-gabc_window_save_file (GAction    *action G_GNUC_UNUSED,
-                       GVariant   *parameter G_GNUC_UNUSED,
-                       GabcWindow *self)
+gabc_window_save_file_handler (GAction    *action G_GNUC_UNUSED,
+                               GVariant   *parameter G_GNUC_UNUSED,
+                               GabcWindow *self)
 {
-  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
+  if (gtk_source_file_get_location(self->abc_source_file) == NULL)
+  {
+    g_print("open a dialog the source file saver with target");
+  }
+  else
+  {
+    GtkSourceFileSaver *saver = gtk_source_file_saver_new (
                                                   self->buffer,
-                                                  self->source_file);
-  gtk_source_file_saver_save_async (saver,
+                                                  self->abc_source_file);
+    gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
                                     NULL, NULL, NULL, NULL,
                                     (GAsyncReadyCallback) save_file_cb,
                                     NULL);
+  }
 }
 
 
