@@ -17,7 +17,6 @@
           <object class="GtkHeaderBar">
             <child>
               <object class="GtkButton" id="log_clear_button">
-                <property name="action-name">log.clear</property>
                 <property name="icon-name">edit-clear-all-symbolic</property>
               </object>
             </child>

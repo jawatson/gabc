@@ -23,7 +23,6 @@
 	(1,1,"GtkWindow","hide-on-close","True",None,None,None,None,None),
 	(1,2,"GtkAccessible","accessible-role","radio-group",None,None,None,None,None),
 	(1,2,"GtkOrientable","orientation","vertical",None,None,None,None,None),
-	(1,9,"GtkActionable","action-name","log.clear",None,None,None,None,None),
 	(1,9,"GtkButton","icon-name","edit-clear-all-symbolic",None,None,None,None,None),
 	(1,10,"GtkScrolledWindow","min-content-height","300",None,None,None,None,None),
 	(1,10,"GtkScrolledWindow","vscrollbar-policy","always",None,None,None,None,None),

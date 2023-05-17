@@ -8,6 +8,7 @@ struct _GabcLogWindow
   AdwWindow parent;
 
   GtkTextBuffer *log_buffer;
+  GtkButton     *log_clear_button;
 
 };
 
@@ -24,20 +25,32 @@ gabc_log_window_append_to_log (GabcLogWindow *self, char *text)
 }
 
 static void
+gabc_log_window_clear_log (GtkWidget *widget,
+                           gpointer   data)
+{
+  GabcLogWindow *self = GABC_LOG_WINDOW(data);
+  g_assert (GABC_IS_LOG_WINDOW (self));
+  gtk_text_buffer_set_text (self->log_buffer, "", -1);
+}
+
+
+static void
+gabc_log_window_init (GabcLogWindow *self)
+{
+  gtk_widget_init_template (GTK_WIDGET (self));
+
+  g_signal_connect (self->log_clear_button, "clicked", G_CALLBACK (gabc_log_window_clear_log), self
+);
+
+}
+
+static void
 gabc_log_window_dispose (GObject *gobject)
 {
   gtk_widget_dispose_template (GTK_WIDGET (gobject), GABC_LOG_WINDOW_TYPE);
 
   G_OBJECT_CLASS (gabc_log_window_parent_class)->dispose (gobject);
 }
-
-static void
-gabc_log_window_init (GabcLogWindow *win)
-{
-  gtk_widget_init_template (GTK_WIDGET (win));
-
-}
-
 
 static void
 gabc_log_window_class_init (GabcLogWindowClass *klass)
@@ -52,6 +65,10 @@ gabc_log_window_class_init (GabcLogWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcLogWindow,
                                         log_buffer);
+   gtk_widget_class_bind_template_child (widget_class,
+                                        GabcLogWindow,
+                                        log_clear_button);
+
 }
 
 GabcLogWindow *
