@@ -24,6 +24,14 @@ gabc_log_window_append_to_log (GabcLogWindow *self, char *text)
 }
 
 static void
+gabc_log_window_dispose (GObject *gobject)
+{
+  gtk_widget_dispose_template (GTK_WIDGET (gobject), GABC_LOG_WINDOW_TYPE);
+
+  G_OBJECT_CLASS (gabc_log_window_parent_class)->dispose (gobject);
+}
+
+static void
 gabc_log_window_init (GabcLogWindow *win)
 {
   gtk_widget_init_template (GTK_WIDGET (win));
@@ -34,14 +42,16 @@ gabc_log_window_init (GabcLogWindow *win)
 static void
 gabc_log_window_class_init (GabcLogWindowClass *klass)
 {
+  G_OBJECT_CLASS (klass)->dispose = gabc_log_window_dispose;
+
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/me/pm/m0dns/gabc/gabc-log-window.ui");
 
   gtk_widget_class_bind_template_child (widget_class,
-                                              GabcLogWindow,
-                                              log_buffer);
+                                        GabcLogWindow,
+                                        log_buffer);
 }
 
 GabcLogWindow *
