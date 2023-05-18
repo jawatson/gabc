@@ -53,6 +53,14 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data);
 
 static void
+gabc_window_save_to_abc_file_location(GabcWindow *self);
+
+static void
+gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
+                                GAsyncResult       *result,
+                                GabcWindow         *self);
+
+static void
 file_open_cb (GObject      *source_object,
               GAsyncResult *res,
               gpointer      data);
@@ -282,21 +290,6 @@ open_file (GabcWindow       *self,
                                      self);
 }
 
-static void
-save_file_cb (GtkSourceFileSaver *saver,
-              GAsyncResult       *result,
-              GabcWindow         *self)
-
-{
-  GError *error = NULL;
-
-  if (!gtk_source_file_saver_save_finish (saver, result, &error))
-  {
-    g_printerr ("Error saving file: %s\n", error->message);
-    g_clear_error (&error);
-  }
-  g_object_unref (saver);
-}
 
 
 static void
@@ -311,17 +304,38 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   }
   else
   {
-    GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                                  self->buffer,
-                                                  self->abc_source_file);
-    gtk_source_file_saver_save_async (saver,
-                                    G_PRIORITY_DEFAULT,
-                                    NULL, NULL, NULL, NULL,
-                                    (GAsyncReadyCallback) save_file_cb,
-                                    NULL);
+    gabc_window_save_to_abc_file_location(self);
   }
 }
 
+
+static void
+gabc_window_save_to_abc_file_location(GabcWindow *self)
+{
+  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
+                                                  self->buffer,
+                                                  self->abc_source_file);
+  gtk_source_file_saver_save_async (saver,
+                                    G_PRIORITY_DEFAULT,
+                                    NULL, NULL, NULL, NULL,
+                                    (GAsyncReadyCallback) gabc_window_save_file_async_cb,
+                                    self);
+}
+
+static void
+gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
+                                GAsyncResult       *result,
+                                GabcWindow         *self)
+{
+  GError *error = NULL;
+
+  if (!gtk_source_file_saver_save_finish (saver, result, &error))
+  {
+    g_printerr ("Error saving file: %s\n", error->message);
+    g_clear_error (&error);
+  }
+  g_object_unref (saver);
+}
 
 static void
 gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
