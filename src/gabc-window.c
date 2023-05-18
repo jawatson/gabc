@@ -67,9 +67,9 @@ open_file (GabcWindow       *self,
            GFile            *file);
 
 static void
-gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self);
+gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
+                          GVariant      *parameter G_GNUC_UNUSED,
+                          gpointer       user_data);
 
 static void
 gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
@@ -131,7 +131,8 @@ gabc_window_class_init (GabcWindowClass *klass)
 
 static const GActionEntry win_actions[] = {
     { "open-log", gabc_window_open_log_dialog },
-    { "play", gabc_window_play_file }
+    { "play", gabc_window_play_file },
+    { "engrave", gabc_window_engrave_file}
 };
 
 static void
@@ -159,7 +160,7 @@ gabc_window_init (GabcWindow *self)
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (save_action));
-
+/*
   g_autoptr (GSimpleAction) engrave_action = g_simple_action_new ("engrave", NULL);
   g_signal_connect (engrave_action,
                     "activate",
@@ -167,7 +168,7 @@ gabc_window_init (GabcWindow *self)
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (engrave_action));
-/*
+
   g_autoptr (GSimpleAction) play_action = g_simple_action_new ("play", NULL);
   g_signal_connect (play_action,
                     "activate",
@@ -352,11 +353,12 @@ gabc_window_save_file_handler (GAction    *action G_GNUC_UNUSED,
 
 
 static void
-gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
-                          GVariant    *parameter G_GNUC_UNUSED,
-                          GabcWindow  *self)
+gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
+                          GVariant      *parameter G_GNUC_UNUSED,
+                          gpointer       user_data)
 {
   gchar *abc_file_path, *ps_file_path;
+  GabcWindow *self = user_data;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   gabc_window_play_media_file (ps_file_path, self);
