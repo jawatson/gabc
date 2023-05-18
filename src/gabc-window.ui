@@ -49,7 +49,7 @@
             <property name="child">
               <object class="GtkSourceView" id="main_text_view">
               <property name="buffer">
-                <object class="GtkSourceBuffer">
+                <object class="GtkSourceBuffer" id="buffer">
                 </object>
               </property>
               <property name="visible">True</property>

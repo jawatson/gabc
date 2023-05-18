@@ -129,7 +129,12 @@ gabc_window_class_init (GabcWindowClass *klass)
         gtk_widget_class_bind_template_child (widget_class,
                                               GabcWindow,
                                               main_text_view);
+
+        gtk_widget_class_bind_template_child (widget_class,
+                                              GabcWindow,
+                                              buffer);
 }
+
 
 static const GActionEntry win_actions[] = {
     { "open-log", gabc_window_open_log_dialog },
@@ -139,6 +144,7 @@ static const GActionEntry win_actions[] = {
     { "save_as", gabc_window_save_file_dialog},
     { "open", gabc_window_open_file_dialog}
 };
+
 
 static void
 gabc_window_init (GabcWindow *self)
@@ -151,9 +157,6 @@ gabc_window_init (GabcWindow *self)
 	                           self);
 
   self->abc_source_file = gtk_source_file_new();
-
-  self->buffer = GTK_SOURCE_BUFFER(gtk_text_view_get_buffer (GTK_TEXT_VIEW(self->main_text_view)));
-  g_object_ref (self->buffer);
 
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
