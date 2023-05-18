@@ -53,6 +53,14 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data);
 
 static void
+gabc_window_save_file_dialog (GabcWindow *self);
+
+static void
+gabc_window_file_save_dialog_cb (GObject       *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       self);
+
+static void
 gabc_window_save_to_abc_file_location(GabcWindow *self);
 
 static void
@@ -219,9 +227,9 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 
 
 static void
-file_open_cb ( GObject       *file_dialog,
-                     GAsyncResult  *res,
-                     gpointer       self)
+file_open_cb (GObject       *file_dialog,
+              GAsyncResult  *res,
+              gpointer       self)
 {
   g_autoptr (GFile) file = gtk_file_dialog_open_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
@@ -301,20 +309,66 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
     g_print("open a dialog the source file saver with target");
+    gabc_window_save_file_dialog (self);
   }
   else
   {
-    gabc_window_save_to_abc_file_location(self);
+    gabc_window_save_to_abc_file_location (self);
   }
 }
+
+static void
+gabc_window_save_file_dialog (GabcWindow *self)
+{
+  GtkFileDialog *gfd;
+  GtkFileFilter *abc_filter;
+  GListStore *filter_list;
+
+  gfd = gtk_file_dialog_new ();
+  gtk_file_dialog_set_title ( gfd, "Save abc File");
+
+  abc_filter = get_abc_file_filter();
+  filter_list = get_abc_filter_list(abc_filter);
+
+  gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
+  gtk_file_dialog_set_default_filter (gfd, abc_filter);
+
+  gtk_file_dialog_save (gfd,
+                        GTK_WINDOW (self),
+                        NULL,
+                        gabc_window_file_save_dialog_cb,
+                        G_OBJECT (self));
+
+  g_object_unref (abc_filter);
+  g_object_unref (filter_list);
+}
+
+
+static void
+gabc_window_file_save_dialog_cb (GObject       *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       user_data)
+{
+  GabcWindow *self = user_data;
+  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+                                                        res,
+                                                        NULL);
+  if (file) {
+    gtk_source_file_set_location(self->abc_source_file, file);
+    gabc_window_save_to_abc_file_location (self);
+  }
+
+  g_object_unref (file_dialog);
+}
+
 
 
 static void
 gabc_window_save_to_abc_file_location(GabcWindow *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                                  self->buffer,
-                                                  self->abc_source_file);
+                                    self->buffer,
+                                    self->abc_source_file);
   gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
                                     NULL, NULL, NULL, NULL,
