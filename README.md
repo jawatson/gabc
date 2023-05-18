@@ -1,12 +1,23 @@
 # gabc
 
-A description of this project.
-# gabc
+A small abc editor for Gnome.  I doubt if the world really needs another 
+abc editor but I was looking for a small project that would help me learn more 
+about GTK4 the Gnome Builder application and FlatPak.
 
-Uses the abc notation syntax highlighting from;
+Gabc (Gnome abc) allows users to open/edit/save abc files and render them either
+as engraved music notation or as playable midi files.
 
-https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang
+File engraving and playing is performed by the [abcm2ps](https://github.com/lewdlime/abcm2ps) 
+and [abc2midi](https://github.com/sshlien/abcmidi) applications
+respectively.  In keeping with Flatpak design practices, these have been 
+included as modules.  Copyright of these applications is neither claimed nor 
+should be inferred.
+ 
+The abc notation syntax highlighting is based upon the .lang file created by
+B. Petersen, available at;
 
-Language file definitions are here;
+[https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang](https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang)
 
-https://gnome.pages.gitlab.gnome.org/gtksourceview/gtksourceview5/lang-tutorial.html
+
+
+
