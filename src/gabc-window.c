@@ -43,14 +43,14 @@ struct _GabcWindow
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 static void
-gabc_window_open_file_dialog (GAction     *action G_GNUC_UNUSED,
-                              GVariant    *parameter G_GNUC_UNUSED,
-                              GabcWindow  *self);
+gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data);
 
 static void
-gabc_window_save_file_handler (GAction     *action G_GNUC_UNUSED,
-                               GVariant    *parameter G_GNUC_UNUSED,
-                               GabcWindow  *self);
+gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
+                               GVariant      *parameter G_GNUC_UNUSED,
+                               gpointer       user_data);
 
 static void
 file_open_cb (GObject      *source_object,
@@ -132,7 +132,9 @@ gabc_window_class_init (GabcWindowClass *klass)
 static const GActionEntry win_actions[] = {
     { "open-log", gabc_window_open_log_dialog },
     { "play", gabc_window_play_file },
-    { "engrave", gabc_window_engrave_file}
+    { "engrave", gabc_window_engrave_file},
+    { "save", gabc_window_save_file_handler},
+    { "open", gabc_window_open_file_dialog}
 };
 
 static void
@@ -144,39 +146,6 @@ gabc_window_init (GabcWindow *self)
 	                           win_actions,
 	                           G_N_ELEMENTS (win_actions),
 	                           self);
-
-  g_autoptr (GSimpleAction) open_action = g_simple_action_new ("open", NULL);
-  g_signal_connect (open_action,
-                    "activate",
-                    G_CALLBACK (gabc_window_open_file_dialog),
-                    self);
-  g_action_map_add_action (G_ACTION_MAP (self),
-                         G_ACTION (open_action));
-
-  g_autoptr (GSimpleAction) save_action = g_simple_action_new ("save", NULL);
-  g_signal_connect (save_action,
-                    "activate",
-                    G_CALLBACK (gabc_window_save_file_handler),
-                    self);
-  g_action_map_add_action (G_ACTION_MAP (self),
-                         G_ACTION (save_action));
-/*
-  g_autoptr (GSimpleAction) engrave_action = g_simple_action_new ("engrave", NULL);
-  g_signal_connect (engrave_action,
-                    "activate",
-                    G_CALLBACK (gabc_window_engrave_file),
-                    self);
-  g_action_map_add_action (G_ACTION_MAP (self),
-                         G_ACTION (engrave_action));
-
-  g_autoptr (GSimpleAction) play_action = g_simple_action_new ("play", NULL);
-  g_signal_connect (play_action,
-                    "activate",
-                    G_CALLBACK (gabc_window_play_file),
-                    self);
-  g_action_map_add_action (G_ACTION_MAP (self),
-                           G_ACTION     (play_action));
-*/
 
   self->abc_source_file = gtk_source_file_new();
 
@@ -212,14 +181,15 @@ get_abc_filter_list (GtkFileFilter *abc_filter)
 
 
 static void
-gabc_window_open_file_dialog (GAction    *action      G_GNUC_UNUSED,
-                              GVariant    *parameter  G_GNUC_UNUSED,
-                              GabcWindow             *self)
+gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data)
 {
   GtkFileDialog *gfd;
   GtkFileFilter *abc_filter;
   GListStore *filter_list;
 
+  GabcWindow *self = user_data;
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Open abc File");
 
@@ -330,10 +300,11 @@ save_file_cb (GtkSourceFileSaver *saver,
 
 
 static void
-gabc_window_save_file_handler (GAction    *action G_GNUC_UNUSED,
-                               GVariant   *parameter G_GNUC_UNUSED,
-                               GabcWindow *self)
+gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
+                               GVariant      *parameter G_GNUC_UNUSED,
+                               gpointer       user_data)
 {
+  GabcWindow *self = user_data;
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
     g_print("open a dialog the source file saver with target");
