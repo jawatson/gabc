@@ -1,0 +1,11 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Gabc
+GenericName=ABC Editpr
+Comment=A small application of editing/playing/engraving abc notation.
+Keywords=abc;notation;music
+Exec=gabc
+Terminal=false
+Type=Application
+Categories=AudioVideo;
+MimeType=application/vnd.abc;

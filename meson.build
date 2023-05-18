@@ -85,6 +85,9 @@ subdir('data')
 subdir('src')
 subdir('po')
 
+install_desktoppath = join_paths(get_option('datadir'), 'applications')
+install_desktopfile = join_paths(install_desktoppath, 'gabc.desktop')
+
 gnome.post_install(
      glib_compile_schemas: true,
     gtk_update_icon_cache: true,
