@@ -72,9 +72,9 @@ gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
                           GabcWindow  *self);
 
 static void
-gabc_window_play_file  (GAction    *action G_GNUC_UNUSED,
-                        GVariant   *parameter G_GNUC_UNUSED,
-                        GabcWindow *self);
+gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
+                        GVariant      *parameter G_GNUC_UNUSED,
+                        gpointer       user_data);
 
 gchar *
 gabc_window_write_buffer_to_file (GabcWindow  *self);
@@ -130,7 +130,8 @@ gabc_window_class_init (GabcWindowClass *klass)
 }
 
 static const GActionEntry win_actions[] = {
-	{ "open-log", gabc_window_open_log_dialog },
+    { "open-log", gabc_window_open_log_dialog },
+    { "play", gabc_window_play_file }
 };
 
 static void
@@ -166,7 +167,7 @@ gabc_window_init (GabcWindow *self)
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                          G_ACTION (engrave_action));
-
+/*
   g_autoptr (GSimpleAction) play_action = g_simple_action_new ("play", NULL);
   g_signal_connect (play_action,
                     "activate",
@@ -174,6 +175,7 @@ gabc_window_init (GabcWindow *self)
                     self);
   g_action_map_add_action (G_ACTION_MAP (self),
                            G_ACTION     (play_action));
+*/
 
   self->abc_source_file = gtk_source_file_new();
 
@@ -364,11 +366,12 @@ gabc_window_engrave_file (GAction     *action G_GNUC_UNUSED,
 }
 
 static void
-gabc_window_play_file  (GAction     *action G_GNUC_UNUSED,
-                        GVariant    *parameter G_GNUC_UNUSED,
-                        GabcWindow  *self)
+gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
+                        GVariant      *parameter G_GNUC_UNUSED,
+                        gpointer       user_data)
 {
   gchar *abc_file_path, *midi_file_path;
+  GabcWindow *self = user_data;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
   gabc_window_play_media_file (midi_file_path, self);
