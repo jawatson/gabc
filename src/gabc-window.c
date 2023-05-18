@@ -53,7 +53,9 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data);
 
 static void
-gabc_window_save_file_dialog (GabcWindow *self);
+gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data);
 
 static void
 gabc_window_file_save_dialog_cb (GObject       *file_dialog,
@@ -150,6 +152,7 @@ static const GActionEntry win_actions[] = {
     { "play", gabc_window_play_file },
     { "engrave", gabc_window_engrave_file},
     { "save", gabc_window_save_file_handler},
+    { "save_as", gabc_window_save_file_dialog},
     { "open", gabc_window_open_file_dialog}
 };
 
@@ -309,7 +312,7 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
     g_print("open a dialog the source file saver with target");
-    gabc_window_save_file_dialog (self);
+    gabc_window_save_file_dialog (NULL, NULL, self);
   }
   else
   {
@@ -318,11 +321,15 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
 }
 
 static void
-gabc_window_save_file_dialog (GabcWindow *self)
+gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data)
 {
   GtkFileDialog *gfd;
   GtkFileFilter *abc_filter;
   GListStore *filter_list;
+
+  GabcWindow *self = user_data;
 
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Save abc File");
