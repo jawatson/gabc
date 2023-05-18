@@ -113,6 +113,9 @@ get_abc_file_filter (void);
 GListStore *
 get_abc_filter_list (GtkFileFilter *abc_filter);
 
+gchar *
+set_file_extension (gchar *file_path, gchar *extension);
+
 /*
  * END OF DECLARATIONS
  */
@@ -275,10 +278,10 @@ static void
 open_file (GabcWindow       *self,
            GFile            *file)
 {
+  GtkSourceFileLoader *loader;
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
-  GtkSourceFileLoader *loader = gtk_source_file_loader_new (
-                                  GTK_SOURCE_BUFFER(self->buffer),
-                                  GTK_SOURCE_FILE (self->abc_source_file));
+  loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->buffer),
+                                       GTK_SOURCE_FILE (self->abc_source_file));
 
   gtk_source_file_loader_load_async (loader,
                                      G_PRIORITY_DEFAULT,
@@ -480,10 +483,15 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gchar *ps_file_path;
   gchar *abc_basename;
 
-  ps_file_path = set_file_extension (file_path, "ps");
+  gchar *cmd[4];
+
+  ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
   abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
 
-  gchar *cmd[] = { "abcm2ps", "-O=", abc_basename, NULL };
+  cmd[0] = (gchar *)("abcm2ps");
+  cmd[1] = (gchar *)("-O=");
+  cmd[2] = abc_basename;
+  cmd[3] = NULL;
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
@@ -519,11 +527,17 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   gchar *midi_basename;
   gchar *midi_file_path;
 
+  gchar *cmd[5];
+
   abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
-  midi_file_path = set_file_extension (file_path, "mid");
+  midi_file_path = set_file_extension (file_path, (gchar*)("mid"));
   midi_basename = g_file_get_basename (g_file_new_for_path(midi_file_path));
 
-  const gchar *cmd[5] = { "abc2midi", abc_basename, "-o", midi_basename, NULL };
+  cmd[0] = (gchar *)("abc2midi");
+  cmd[1] = abc_basename;
+  cmd[2] = (gchar *)("-o");
+  cmd[3] = midi_basename;
+  cmd[4] = NULL;
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
