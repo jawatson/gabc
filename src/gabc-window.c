@@ -27,15 +27,10 @@ struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
 
-	/* Template widgets */
 	GtkHeaderBar        *header_bar;
 	GtkSourceView       *main_text_view;
         GtkSourceBuffer     *buffer;
         GtkSourceFile       *abc_source_file;
-        GtkButton           *open_button;
-        GtkButton           *save_button;
-        GtkButton           *engrave_button;
-        GtkButton           *play_button;
 
         GabcLogWindow       *log_window;
 };
@@ -130,21 +125,10 @@ gabc_window_class_init (GabcWindowClass *klass)
         g_type_ensure (GTK_SOURCE_TYPE_VIEW);
 
 	gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
-	gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              header_bar);
+
         gtk_widget_class_bind_template_child (widget_class,
                                               GabcWindow,
                                               main_text_view);
-        gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              open_button);
-        gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              engrave_button);
-        gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              play_button);
 }
 
 static const GActionEntry win_actions[] = {
@@ -172,7 +156,6 @@ gabc_window_init (GabcWindow *self)
   g_object_ref (self->buffer);
 
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
-  //gtk_source_buffer_set_highlight_matching_brackets (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   self->log_window = gabc_log_window_new(self);
@@ -567,7 +550,6 @@ play_media_cb (GtkFileLauncher *launcher,
 {
   GError *error = NULL;
   GabcWindow *self = GABC_WINDOW(data);
-  //g_assert (GABC_IS_WINDOW (self));
 
   if (!gtk_file_launcher_launch_finish (launcher, result, &error))
   {
