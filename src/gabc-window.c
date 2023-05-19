@@ -229,7 +229,6 @@ file_open_cb (GObject       *file_dialog,
   if (file) {
     open_file (self, file);
   }
-
   g_object_unref (file_dialog);
 }
 
@@ -244,6 +243,8 @@ open_file_cb (GtkSourceFileLoader *loader,
 
   GtkTextIter start;
   GError *error = NULL;
+
+  const gchar *id;
 
 
   if (!gtk_source_file_loader_load_finish (loader, result, &error))
@@ -260,16 +261,16 @@ open_file_cb (GtkSourceFileLoader *loader,
   }
 
   lm = gtk_source_language_manager_get_default();
-  language = gtk_source_language_manager_get_language (lm, "abc");
+  id = "abc";
+  language = gtk_source_language_manager_get_language (lm, id);
   if (language == NULL)
   {
-    g_print ("No language found for language id '%s'\n", "abc");
+    g_print ("No language found for language id '%s'\n", id);
   }
   else
   {
     gtk_source_buffer_set_language (self->buffer, language);
   }
-
   g_object_unref (loader);
 }
 
@@ -445,6 +446,7 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
 gchar *
 set_file_extension (gchar *file_path, gchar *extension)
 {
+  GFile *parent_file;
   gchar *parent_dir;
   gchar *original_basename;
   gchar *new_file_path;
@@ -454,18 +456,20 @@ set_file_extension (gchar *file_path, gchar *extension)
 
   file = g_file_new_for_path(file_path);
   original_basename = g_file_get_basename(file);
-  parent_dir = g_file_get_path(g_file_get_parent(file));
+  parent_file = g_file_get_parent(file);
+  parent_dir = g_file_get_path(parent_file);
 
   tokens = g_strsplit(original_basename, ".", 0);
 
   new_basename = g_strconcat(tokens[0], ".", extension, NULL);
   new_file_path = g_build_filename (parent_dir, new_basename, NULL);
 
+  g_object_unref (parent_file);
   g_free (parent_dir);
   g_free (original_basename);
   g_free (new_basename);
   g_strfreev(tokens);
-  g_free (file);
+  g_object_unref (file);
 
   return new_file_path;
 }
@@ -487,7 +491,6 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
   abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
-
   cmd[0] = (gchar *)("abcm2ps");
   cmd[1] = (gchar *)("-O=");
   cmd[2] = abc_basename;
