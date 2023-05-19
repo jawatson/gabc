@@ -55,9 +55,11 @@ gabc_log_window_dispose (GObject *gobject)
 static void
 gabc_log_window_class_init (GabcLogWindowClass *klass)
 {
+  GtkWidgetClass *widget_class;
+
   G_OBJECT_CLASS (klass)->dispose = gabc_log_window_dispose;
 
-  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  widget_class = GTK_WIDGET_CLASS (klass);
 
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/me/pm/m0dns/gabc/gabc-log-window.ui");
