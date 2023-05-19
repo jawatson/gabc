@@ -511,6 +511,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   }
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
+  gabc_log_window_append_to_log (self->log_window, standard_error);
 
   g_free (standard_output);
   g_free (standard_error);
@@ -562,6 +563,7 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   }
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
+  gabc_log_window_append_to_log (self->log_window, standard_error);
 
   g_object_unref (path_file);
   g_object_unref (midi_file);
