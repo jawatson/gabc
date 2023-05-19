@@ -485,21 +485,35 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gboolean result;
 
   gchar *ps_file_path;
-  gchar *abc_basename;
+  gchar *working_dir_path;
 
-  GFile *abc_file;
+  GFile *working_file;
+  GFile *working_dir_file;
+
 
   gchar *cmd[4];
 
-  ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
-  abc_file = g_file_new_for_path(file_path);
-  abc_basename = g_file_get_basename (abc_file);
-  cmd[0] = (gchar *)("abcm2ps");
-  cmd[1] = (gchar *)("-O=");
-  cmd[2] = abc_basename;
-  cmd[3] = NULL;
+  if (self->abc_source_file == NULL) {
+    working_dir_path = g_getenv("XDG_CACHE_HOME");
+  }
+  else
+  {
+    working_file = gtk_source_file_get_location (self->abc_source_file);
+    working_dir_file = g_file_get_parent (working_file);
+    working_dir_path = g_file_get_path (working_dir_file);
+  }
 
-  result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
+  ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
+  cmd[0] = (gchar *)("abcm2ps");
+  cmd[1] = (gchar *)("-O");
+  cmd[2] = ps_file_path;
+  cmd[3] = file_path;
+  cmd[4] = NULL;
+
+  g_print("Working Dir: %s \n", working_dir_path);
+  g_print("%s %s %s %s", cmd[0], cmd[1], cmd[2], cmd[3]);
+
+  result = g_spawn_sync (working_dir_path, (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
                       &standard_output, &standard_error,
                       &exit_status, &error);
@@ -515,9 +529,10 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   g_free (standard_output);
   g_free (standard_error);
-  g_free (abc_basename);
+  g_free (working_dir_path);
 
-  g_object_unref (abc_file);
+  g_object_unref (working_file);
+  g_object_unref (working_dir_file);
 
   return ps_file_path;
 }
