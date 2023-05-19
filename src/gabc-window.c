@@ -228,6 +228,7 @@ file_open_cb (GObject       *file_dialog,
                                                         NULL);
   if (file) {
     open_file (self, file);
+    //g_object_unref (file);
   }
   g_object_unref (file_dialog);
 }
@@ -322,7 +323,7 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
 
   gfd = gtk_file_dialog_new ();
-  gtk_file_dialog_set_title ( gfd, "Save abc File");
+  gtk_file_dialog_set_title (gfd, "Save abc File");
 
   abc_filter = get_abc_file_filter();
   filter_list = get_abc_filter_list(abc_filter);
@@ -335,7 +336,6 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
                         NULL,
                         gabc_window_file_save_dialog_cb,
                         G_OBJECT (self));
-
   g_object_unref (abc_filter);
   g_object_unref (filter_list);
 }
@@ -354,8 +354,8 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gtk_source_file_set_location(self->abc_source_file, file);
     gabc_window_save_to_abc_file_location (self);
   }
-
   g_object_unref (file_dialog);
+
 }
 
 
@@ -487,10 +487,13 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gchar *ps_file_path;
   gchar *abc_basename;
 
+  GFile *abc_file;
+
   gchar *cmd[4];
 
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
-  abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
+  abc_file = g_file_new_for_path(file_path);
+  abc_basename = g_file_get_basename (abc_file);
   cmd[0] = (gchar *)("abcm2ps");
   cmd[1] = (gchar *)("-O=");
   cmd[2] = abc_basename;
@@ -513,6 +516,8 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   g_free (standard_error);
   g_free (abc_basename);
 
+  g_object_unref (abc_file);
+
   return ps_file_path;
 }
 
@@ -530,11 +535,15 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   gchar *midi_basename;
   gchar *midi_file_path;
 
-  gchar *cmd[5];
+  GFile *path_file;
+  GFile *midi_file;
 
-  abc_basename = g_file_get_basename (g_file_new_for_path(file_path));
+  gchar *cmd[5];
+  path_file = g_file_new_for_path(file_path);
+  abc_basename = g_file_get_basename (path_file);
   midi_file_path = set_file_extension (file_path, (gchar*)("mid"));
-  midi_basename = g_file_get_basename (g_file_new_for_path(midi_file_path));
+  midi_file = g_file_new_for_path(midi_file_path);
+  midi_basename = g_file_get_basename (midi_file);
 
   cmd[0] = (gchar *)("abc2midi");
   cmd[1] = abc_basename;
@@ -554,6 +563,8 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
 
+  g_object_unref (path_file);
+  g_object_unref (midi_file);
   g_free (standard_output);
   g_free (standard_error);
   g_free (abc_basename);
