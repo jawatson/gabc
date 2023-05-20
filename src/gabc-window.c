@@ -158,6 +158,10 @@ static const GActionEntry win_actions[] = {
 static void
 gabc_window_init (GabcWindow *self)
 {
+  GtkSourceLanguageManager *lm;
+  GtkSourceLanguage *language;
+  const gchar *id;
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   g_action_map_add_action_entries (G_ACTION_MAP (self),
@@ -171,6 +175,18 @@ gabc_window_init (GabcWindow *self)
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   self->log_window = gabc_log_window_new(self);
+
+  lm = gtk_source_language_manager_get_default();
+  id = "abc";
+  language = gtk_source_language_manager_get_language (lm, id);
+  if (language == NULL)
+  {
+    g_print ("No language found for language id '%s'\n", id);
+  }
+  else
+  {
+    gtk_source_buffer_set_language (self->buffer, language);
+  }
 
 }
 
@@ -256,14 +272,8 @@ open_file_cb (GtkSourceFileLoader *loader,
               GAsyncResult        *result,
               GabcWindow          *self)
 {
-  GtkSourceLanguageManager *lm;
-  GtkSourceLanguage *language;
-
   GtkTextIter start;
   GError *error = NULL;
-
-  const gchar *id;
-
 
   if (!gtk_source_file_loader_load_finish (loader, result, &error))
   {
@@ -278,17 +288,6 @@ open_file_cb (GtkSourceFileLoader *loader,
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
   }
 
-  lm = gtk_source_language_manager_get_default();
-  id = "abc";
-  language = gtk_source_language_manager_get_language (lm, id);
-  if (language == NULL)
-  {
-    g_print ("No language found for language id '%s'\n", id);
-  }
-  else
-  {
-    gtk_source_buffer_set_language (self->buffer, language);
-  }
   g_object_unref (loader);
 }
 
