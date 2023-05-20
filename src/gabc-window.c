@@ -76,6 +76,11 @@ open_file_cb (GtkSourceFileLoader *loader,
               GabcWindow          *self);
 
 static void
+gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
+                          GVariant      *parameter G_GNUC_UNUSED,
+                          gpointer       user_data);
+
+static void
 open_file (GabcWindow       *self,
            GFile            *file);
 
@@ -145,7 +150,8 @@ static const GActionEntry win_actions[] = {
     { "engrave", gabc_window_engrave_file},
     { "save", gabc_window_save_file_handler},
     { "save_as", gabc_window_save_file_dialog},
-    { "open", gabc_window_open_file_dialog}
+    { "open", gabc_window_open_file_dialog},
+    { "new", gabc_window_clear_buffer}
 };
 
 
@@ -167,6 +173,17 @@ gabc_window_init (GabcWindow *self)
   self->log_window = gabc_log_window_new(self);
 
 }
+
+static void
+gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
+                          GVariant      *parameter G_GNUC_UNUSED,
+                          gpointer       user_data)
+{
+  GabcWindow *self = user_data;
+  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), "", -1);
+  gtk_source_file_set_location (self->abc_source_file, NULL);
+}
+
 
 GtkFileFilter *
 get_abc_file_filter (void)
