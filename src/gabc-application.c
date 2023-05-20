@@ -102,9 +102,20 @@ gabc_application_quit_action (GSimpleAction *action,
 	g_application_quit (G_APPLICATION (self));
 }
 
+
+static void
+gabc_application_preferences_action (GSimpleAction *action,
+                              GVariant      *parameter,
+                              gpointer       user_data)
+{
+  g_print ("show the prefs");
+}
+
+
 static const GActionEntry app_actions[] = {
 	{ "quit", gabc_application_quit_action },
 	{ "about", gabc_application_about_action },
+        { "preferences", gabc_application_preferences_action }
 };
 
 static void
