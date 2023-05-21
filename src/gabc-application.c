@@ -22,6 +22,7 @@
 
 #include "gabc-application.h"
 #include "gabc-window.h"
+#include "gabc-prefs-window.h"
 
 struct _GabcApplication
 {
@@ -108,7 +109,17 @@ gabc_application_preferences_action (GSimpleAction *action,
                               GVariant      *parameter,
                               gpointer       user_data)
 {
-  g_print ("show the prefs");
+  GabcPrefsWindow *prefs;
+  GabcWindow *win;
+
+  GabcApplication *self = user_data;
+  GtkWindow *window = NULL;
+
+  g_assert (GABC_IS_APPLICATION (self));
+
+  window = gtk_application_get_active_window (GTK_APPLICATION (self));
+  prefs = gabc_prefs_window_new (GABC_WINDOW (window));
+  gtk_window_present (GTK_WINDOW (prefs));
 }
 
 

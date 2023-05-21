@@ -6,6 +6,7 @@ gabc_sources = [
   'gabc-prefs-window.c'
 ]
 
+
 gabc_deps = [
   dependency('gtk4'),
   dependency('libadwaita-1', version: '>= 1.2'),
