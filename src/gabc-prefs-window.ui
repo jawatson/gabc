@@ -1,67 +1,168 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  https://gitlab.gnome.org/neithern/g4music/-/blob/master/src/gtk/preferences.ui
+-->
 <interface>
-  <template class="GabcAppPrefs" parent="GtkWindow">
-    <property name="title" translatable="yes">Preferences</property>
-    <property name="resizable">0</property>
-    <property name="modal">1</property>
-    <child internal-child="content_area">
-      <object class="GtkBox" id="content_area">
+  <requires lib="gtk" version="4.0"/>
+  <template class="GabcPrefsWindow" parent="AdwPreferencesWindow">
+    <property name="default-width">500</property>
+    <property name="default-height">400</property>
+    <property name="search-enabled">false</property>
+    <property name="modal">true</property>
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="icon-name">video-display-symbolic</property>
+        <property name="title" translatable="yes">General</property>
         <child>
-          <object class="GtkGrid" id="grid">
-            <property name="margin-start">12</property>
-            <property name="margin-end">12</property>
-            <property name="margin-top">12</property>
-            <property name="margin-bottom">12</property>
-            <property name="row-spacing">12</property>
-            <property name="column-spacing">12</property>
+          <object class="AdwPreferencesGroup">
             <child>
-              <object class="GtkLabel" id="fontlabel">
-                <property name="label">_Font:</property>
-                <property name="use-underline">1</property>
-                <property name="mnemonic-widget">font</property>
-                <property name="xalign">1</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">0</property>
-                </layout>
+              <object class="AdwActionRow" id="dark_theme">
+                <property name="title" translatable="yes">Prefer dark theme</property>
+                <property name="activatable_widget">dark_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="dark_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <!--
+            <child>
+              <object class="AdwComboRow" id="blur_row">
+                <property name="title" translatable="yes">Background blur mode</property>
               </object>
             </child>
             <child>
-              <object class="GtkFontButton" id="font">
-                <layout>
-                  <property name="column">1</property>
-                  <property name="row">0</property>
-                </layout>
+              <object class="AdwActionRow" id="compact_list">
+                <property name="title" translatable="yes">Compact playlist view</property>
+                <property name="activatable_widget">compact_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="compact_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            -->
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage">
+        <!--
+        -e tune index list (regex)
+        -i Circle errors binary
+        -N Page numbering (combo box)  0
+            0 no page numbers
+            1 at top left
+            2 at top right
+            3 at top left on even pages, top right on odd pages
+            4 at top right on even pages, top left on odd pages
+
+        ‐D <dir> Search the format files in the directory <dir>.
+
+        -->
+
+        <property name="icon-name">folder-music-symbolic</property>
+        <property name="title" translatable="yes">abcm2ps</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Format directory</property>
+                <property name="subtitle">/home/jwatson/abc_formats</property>
+                <property name="activatable_widget">format_dir_btn</property>
+                <child>
+                  <object class="GtkButton" id="music_dir_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="transitionlabel">
-                <property name="label">_Transition:</property>
-                <property name="use-underline">1</property>
-                <property name="mnemonic-widget">transition</property>
-                <property name="xalign">1</property>
-                <layout>
-                  <property name="column">0</property>
-                  <property name="row">1</property>
-                </layout>
-              </object>
-            </child>
-            <child>
-              <object class="GtkComboBoxText" id="transition">
-                <items>
-                  <item translatable="yes" id="none">None</item>
-                  <item translatable="yes" id="crossfade">Fade</item>
-                  <item translatable="yes" id="slide-left-right">Slide</item>
-                </items>
-                <layout>
-                  <property name="column">1</property>
-                  <property name="row">1</property>
-                </layout>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Show errors</property>
+                <property name="activatable_widget">thumbnail_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="thumbnail_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
         </child>
       </object>
     </child>
+    <!--
+    <child>
+      <object class="AdwPreferencesPage">
+        <property name="icon-name">media-playback-start-symbolic</property>
+        <property name="title" translatable="yes">abc2midi</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Keep playing after window closed</property>
+                <property name="activatable_widget">playbkgnd_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="playbkgnd_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Show audio peak level</property>
+                <property name="activatable_widget">peak_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="peak_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Enable gapless playback</property>
+                <property name="activatable_widget">gapless_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="gapless_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Use ReplayGain to normalize volume</property>
+                <property name="activatable_widget">replaygain_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="replaygain_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Use pipewire audio sink</property>
+                <property name="subtitle" translatable="yes">Experimental</property>
+                <property name="activatable_widget">pipewire_btn</property>
+                <child>
+                  <object class="GtkSwitch" id="pipewire_btn">
+                    <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    -->
   </template>
 </interface>
+

@@ -13,7 +13,7 @@ struct _GabcPrefsWindow
   GtkWidget *transition;
 };
 
-G_DEFINE_TYPE (GabcPrefsWindow, gabc_prefs_window, ADW_TYPE_WINDOW)
+G_DEFINE_TYPE (GabcPrefsWindow, gabc_prefs_window, ADW_TYPE_PREFERENCES_WINDOW)
 
 static void
 gabc_prefs_window_init (GabcPrefsWindow *prefs)
@@ -58,4 +58,5 @@ gabc_prefs_window_new (GabcWindow *win)
 {
   return g_object_new (GABC_PREFS_WINDOW_TYPE, "transient-for", win, NULL);
 }
+
 
