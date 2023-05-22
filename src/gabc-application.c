@@ -110,7 +110,7 @@ gabc_application_preferences_action (GSimpleAction *action,
                               gpointer       user_data)
 {
   GabcPrefsWindow *prefs;
-  GabcWindow *win;
+  //GabcWindow *win;
 
   GabcApplication *self = user_data;
   GtkWindow *window = NULL;

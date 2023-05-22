@@ -23,9 +23,16 @@
 #include "gabc-window.h"
 #include "gabc-log-window.h"
 
+/*
+ *
+ * TODO add a dispose function
+ */
+
 struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
+
+        GSettings           *settings;
 
 	GtkHeaderBar        *header_bar;
 	GtkSourceView       *main_text_view;
@@ -164,6 +171,8 @@ gabc_window_init (GabcWindow *self)
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
+  self->settings = g_settings_new ("me.pm.m0dns.gabc");
+
   g_action_map_add_action_entries (G_ACTION_MAP (self),
 	                           win_actions,
 	                           G_N_ELEMENTS (win_actions),
@@ -189,6 +198,21 @@ gabc_window_init (GabcWindow *self)
   }
 
 }
+
+
+static void
+gabc_app_window_dispose (GObject *object)
+{
+  GabcWindow *win;
+
+  win = GABC_WINDOW (object);
+
+  g_clear_object (&win->settings);
+
+  G_OBJECT_CLASS (gabc_window_parent_class)->dispose (object);
+}
+
+
 
 static void
 gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
@@ -499,6 +523,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gint exit_status;
   GError *error = NULL;
   gboolean result;
+  gint idx;
 
   gchar *ps_file_path;
   gchar *working_dir_path;
@@ -506,8 +531,10 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   GFile *working_file;
   GFile *working_dir_file;
 
+  gchar *cmd[10];
 
-  gchar *cmd[4];
+
+
 
   if (self->abc_source_file == NULL) {
     working_dir_path = g_getenv("XDG_CACHE_HOME");
@@ -520,11 +547,21 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   }
 
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
-  cmd[0] = (gchar *)("abcm2ps");
-  cmd[1] = (gchar *)("-O");
-  cmd[2] = ps_file_path;
-  cmd[3] = file_path;
-  cmd[4] = NULL;
+  idx = 0;
+  cmd[idx] = (gchar *)("abcm2ps");
+  ++idx;
+  if (g_settings_get_boolean (self->settings, "show-errors")) {
+      g_print("showing the errors");
+      cmd[idx] = (gchar *)("-i");
+      ++idx;
+  }
+  cmd[idx] = (gchar *)("-O");
+  ++idx;
+  cmd[idx] = ps_file_path;
+  ++idx;
+  cmd[idx] = file_path;
+  ++idx;
+  cmd[idx] = NULL;
 
   g_print("Working Dir: %s \n", working_dir_path);
   g_print("%s %s %s %s", cmd[0], cmd[1], cmd[2], cmd[3]);

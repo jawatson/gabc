@@ -18,7 +18,19 @@ gabc_sources += gnome.compile_resources('gabc-resources',
   c_name: 'gabc'
 )
 
-executable('gabc', gabc_sources,
+
+settings_schemas = [ 'me.pm.m0dns.gabc.gschema.xml' ]
+
+gabc_schemas = gnome.compile_schemas(depend_files: files(settings_schemas))
+
+schemas_dir = get_option('prefix') / get_option('datadir') / 'glib-2.0' / 'schemas'
+
+install_data(settings_schemas, install_dir: schemas_dir)
+
+meson.add_install_script('glib-compile-schemas', schemas_dir)
+
+
+executable('gabc', gabc_sources, gabc_schemas,
   dependencies: gabc_deps,
        install: true,
 )
