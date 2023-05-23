@@ -546,29 +546,21 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
   idx = 0;
 
-  cmd[idx] = (gchar *)("abcm2ps");
-  ++idx;
+  cmd[idx++] = (gchar *)("abcm2ps");
   if (g_settings_get_boolean (self->settings, "abcm2ps-show-errors")) {
       g_print("Showing the errors");
-      cmd[idx] = (gchar *)("-i");
-      ++idx;
-
+      cmd[idx++] = (gchar *)("-i");
   }
 
   char *page_numbering_mode = g_settings_get_string (self->settings, "abcm2ps-page-numbering");
   g_print ("Page numbering mode: %s \n", page_numbering_mode);
-  cmd[idx] = (gchar *)("-N");
-  ++idx;
-  cmd[idx] = (page_numbering_mode);
-  ++idx;
+  cmd[idx++] = (gchar *)("-N");
+  cmd[idx++] = (page_numbering_mode);
 
-  cmd[idx] = (gchar *)("-O");
-  ++idx;
-  cmd[idx] = ps_file_path;
-  ++idx;
-  cmd[idx] = file_path;
-  ++idx;
-  cmd[idx] = NULL;
+  cmd[idx++] = (gchar *)("-O");
+  cmd[idx++] = ps_file_path;
+  cmd[idx++] = file_path;
+  cmd[idx++] = NULL;
 
   g_print("Working Dir: %s \n", working_dir_path);
   g_print("%s %s %s %s %s \n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4]);
@@ -587,6 +579,8 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gabc_log_window_append_to_log (self->log_window, standard_output);
   gabc_log_window_append_to_log (self->log_window, standard_error);
 
+  //g_array_free
+  //
   g_free (standard_output);
   g_free (standard_error);
   g_free (working_dir_path);
