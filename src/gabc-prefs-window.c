@@ -10,6 +10,7 @@ struct _GabcPrefsWindow
 
   GSettings *settings;
   GtkWidget *abcm2ps_errors_switch;
+  GtkWidget *abcm2ps_page_number_combo;
 
   GtkButton *fmt_dir_btn;
   //GtkWidget *transition;
@@ -38,6 +39,10 @@ gabc_prefs_window_init (GabcPrefsWindow *prefs)
   g_settings_bind (prefs->settings, "abcm2ps-show-errors",
                    prefs->abcm2ps_errors_switch, "active",
                    G_SETTINGS_BIND_DEFAULT);
+
+  g_settings_bind (prefs->settings, "abcm2ps-page-numbering",
+                   prefs->abcm2ps_page_number_combo, "active-id",
+                   G_SETTINGS_BIND_DEFAULT);
  /*
   g_settings_bind (prefs->settings, "transition",
                    prefs->transition, "active-id",
@@ -65,7 +70,7 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (klass),
                                                "/me/pm/m0dns/gabc/gabc-prefs-window.ui");
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_errors_switch);
-  //gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, transition);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_page_number_combo);
 }
 
 GabcPrefsWindow *

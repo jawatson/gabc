@@ -531,10 +531,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   GFile *working_file;
   GFile *working_dir_file;
 
-  gchar *cmd[10];
-
-
-
+  gchar *cmd[20];
 
   if (self->abc_source_file == NULL) {
     working_dir_path = g_getenv("XDG_CACHE_HOME");
@@ -548,13 +545,23 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
   idx = 0;
+
   cmd[idx] = (gchar *)("abcm2ps");
   ++idx;
   if (g_settings_get_boolean (self->settings, "abcm2ps-show-errors")) {
       g_print("Showing the errors");
       cmd[idx] = (gchar *)("-i");
       ++idx;
+
   }
+
+  char *page_numbering_mode = g_settings_get_string (self->settings, "abcm2ps-page-numbering");
+  g_print ("Page numbering mode: %s \n", page_numbering_mode);
+  cmd[idx] = (gchar *)("-N");
+  ++idx;
+  cmd[idx] = (page_numbering_mode);
+  ++idx;
+
   cmd[idx] = (gchar *)("-O");
   ++idx;
   cmd[idx] = ps_file_path;
@@ -564,7 +571,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   cmd[idx] = NULL;
 
   g_print("Working Dir: %s \n", working_dir_path);
-  g_print("%s %s %s %s", cmd[0], cmd[1], cmd[2], cmd[3]);
+  g_print("%s %s %s %s %s \n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4]);
 
   result = g_spawn_sync (working_dir_path, (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,

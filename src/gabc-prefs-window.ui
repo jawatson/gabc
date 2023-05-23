@@ -93,6 +93,27 @@
                 </child>
               </object>
             </child>
+
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Page Numbering</property>
+                <property name="activatable_widget">abcm2ps_page_number_combo</property>
+                <child>
+                  <object class="GtkComboBoxText" id="abcm2ps_page_number_combo">
+                    <property name="active">1</property>
+                    <items>
+                      <item translatable="yes" id="0">None</item>
+                      <item translatable="yes" id="1">Top Left</item>
+                      <item translatable="yes" id="2">Top Right</item>
+                      <item translatable="yes" id="3">Top Left | Top Right</item>
+                      <item translatable="yes" id="4">Top Right | Top Left</item>
+                    </items>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+
           </object>
         </child>
       </object>
