@@ -1,12 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema path="/me/pm/m0dns/gabc/" id="me.pm.m0dns.gabc">
-    <key type="b" name="errors">
+    <key name="abcm2ps-show-errors" type="b">
       <default>true</default>
       <summary>Show errors in engraved file.</summary>
       <description>
         Insert a red circle around errors in the PostScript  output.
       </description>
+    </key>
+    <key name="fmt-dir" type="s">
+      <default>''</default>
+      <summary>Search this directory for format (.fmt) files</summary>
     </key>
   </schema>
 </schemalist>

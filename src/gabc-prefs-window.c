@@ -10,6 +10,8 @@ struct _GabcPrefsWindow
 
   GSettings *settings;
   GtkWidget *errors;
+
+  GtkButton *fmt_dir_btn;
   //GtkWidget *transition;
 };
 
@@ -21,7 +23,19 @@ gabc_prefs_window_init (GabcPrefsWindow *prefs)
   gtk_widget_init_template (GTK_WIDGET (prefs));
   prefs->settings = g_settings_new ("me.pm.m0dns.gabc");
 
-  g_settings_bind (prefs->settings, "errors",
+
+  /*
+   music_dir_btn.clicked.connect (() => {
+                pick_music_folder_async.begin (app, this, (dir) => {
+                    music_dir_btn.label = get_display_name (dir);
+                    app.reload_music_store ();
+                }, (obj, res) => pick_music_folder_async.end (res));
+            });
+
+
+   */
+
+  g_settings_bind (prefs->settings, "abcm2ps-show-errors",
                    prefs->errors, "active",
                    G_SETTINGS_BIND_DEFAULT);
  /*
@@ -60,4 +74,20 @@ gabc_prefs_window_new (GabcWindow *win)
   return g_object_new (GABC_PREFS_WINDOW_TYPE, "transient-for", win, NULL);
 }
 
-
+/*
+static void
+async void pick_music_folder_async (Application app, Gtk.Window? parent, FolderPicked picked) {
+        var music_dir = app.get_music_folder ();
+        var dialog = new Gtk.FileDialog ();
+        dialog.initial_folder = music_dir;
+        dialog.modal = true;
+        try {
+            var dir = yield dialog.select_folder (parent, null);
+            if (dir != null && dir != music_dir) {
+                app.settings?.set_string ("music-dir", ((!)dir).get_uri ());
+                picked ((!)dir);
+            }
+        } catch (Error e) {
+        }
+    }
+*/

@@ -550,7 +550,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   idx = 0;
   cmd[idx] = (gchar *)("abcm2ps");
   ++idx;
-  if (g_settings_get_boolean (self->settings, "errors")) {
+  if (g_settings_get_boolean (self->settings, "abcm2ps-show-errors")) {
       g_print("Showing the errors");
       cmd[idx] = (gchar *)("-i");
       ++idx;
