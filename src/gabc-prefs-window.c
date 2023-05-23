@@ -9,7 +9,7 @@ struct _GabcPrefsWindow
   AdwWindow parent;
 
   GSettings *settings;
-  GtkWidget *errors;
+  GtkWidget *abcm2ps_errors_switch;
 
   GtkButton *fmt_dir_btn;
   //GtkWidget *transition;
@@ -36,7 +36,7 @@ gabc_prefs_window_init (GabcPrefsWindow *prefs)
    */
 
   g_settings_bind (prefs->settings, "abcm2ps-show-errors",
-                   prefs->errors, "active",
+                   prefs->abcm2ps_errors_switch, "active",
                    G_SETTINGS_BIND_DEFAULT);
  /*
   g_settings_bind (prefs->settings, "transition",
@@ -64,7 +64,7 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (klass),
                                                "/me/pm/m0dns/gabc/gabc-prefs-window.ui");
-  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, errors);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_errors_switch);
   //gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, transition);
 }
 

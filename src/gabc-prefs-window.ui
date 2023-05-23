@@ -85,9 +85,9 @@
             <child>
               <object class="AdwActionRow">
                 <property name="title" translatable="yes">Show errors</property>
-                <property name="activatable_widget">errors</property>
+                <property name="activatable_widget">abcm2ps_errors_switch</property>
                 <child>
-                  <object class="GtkSwitch" id="errors">
+                  <object class="GtkSwitch" id="abcm2ps_errors_switch">
                     <property name="valign">center</property>
                   </object>
                 </child>
