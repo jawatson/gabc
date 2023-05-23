@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
   <schema path="/me/pm/m0dns/gabc/" id="me.pm.m0dns.gabc">
-    <key type="b" name="show-errors">
+    <key type="b" name="errors">
       <default>true</default>
       <summary>Show errors in engraved file.</summary>
       <description>

@@ -9,8 +9,8 @@ struct _GabcPrefsWindow
   AdwWindow parent;
 
   GSettings *settings;
-  GtkWidget *font;
-  GtkWidget *transition;
+  GtkWidget *errors;
+  //GtkWidget *transition;
 };
 
 G_DEFINE_TYPE (GabcPrefsWindow, gabc_prefs_window, ADW_TYPE_PREFERENCES_WINDOW)
@@ -20,10 +20,11 @@ gabc_prefs_window_init (GabcPrefsWindow *prefs)
 {
   gtk_widget_init_template (GTK_WIDGET (prefs));
   prefs->settings = g_settings_new ("me.pm.m0dns.gabc");
-/*
-  g_settings_bind (prefs->settings, "font",
-                   prefs->font, "font",
+
+  g_settings_bind (prefs->settings, "errors",
+                   prefs->errors, "active",
                    G_SETTINGS_BIND_DEFAULT);
+ /*
   g_settings_bind (prefs->settings, "transition",
                    prefs->transition, "active-id",
                    G_SETTINGS_BIND_DEFAULT);
@@ -49,7 +50,7 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (klass),
                                                "/me/pm/m0dns/gabc/gabc-prefs-window.ui");
-  //gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, font);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, errors);
   //gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, transition);
 }
 

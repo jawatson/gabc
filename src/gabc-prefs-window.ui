@@ -68,6 +68,7 @@
         <property name="title" translatable="yes">abcm2ps</property>
         <child>
           <object class="AdwPreferencesGroup">
+            <!--
             <child>
               <object class="AdwActionRow">
                 <property name="title" translatable="yes">Format directory</property>
@@ -80,12 +81,13 @@
                 </child>
               </object>
             </child>
+            -->
             <child>
               <object class="AdwActionRow">
                 <property name="title" translatable="yes">Show errors</property>
-                <property name="activatable_widget">thumbnail_btn</property>
+                <property name="activatable_widget">errors</property>
                 <child>
-                  <object class="GtkSwitch" id="thumbnail_btn">
+                  <object class="GtkSwitch" id="errors">
                     <property name="valign">center</property>
                   </object>
                 </child>
