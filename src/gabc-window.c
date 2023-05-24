@@ -554,7 +554,6 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gint exit_status;
   GError *error = NULL;
   gboolean result;
-  gint idx;
 
   gchar *ps_file_path;
   gchar *working_dir_path;
@@ -562,6 +561,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   GFile *working_file;
   GFile *working_dir_file;
 
+  gint idx;
   gchar *cmd[20];
 
   if (self->abc_source_file == NULL) {
@@ -639,18 +639,21 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   GFile *path_file;
   GFile *midi_file;
 
-  gchar *cmd[5];
+  gint idx;
+  gchar *cmd[10];
+
   path_file = g_file_new_for_path(file_path);
   abc_basename = g_file_get_basename (path_file);
   midi_file_path = set_file_extension (file_path, (gchar*)("mid"));
   midi_file = g_file_new_for_path(midi_file_path);
   midi_basename = g_file_get_basename (midi_file);
 
-  cmd[0] = (gchar *)("abc2midi");
-  cmd[1] = abc_basename;
-  cmd[2] = (gchar *)("-o");
-  cmd[3] = midi_basename;
-  cmd[4] = NULL;
+  idx = 0;
+  cmd[idx++] = (gchar *)("abc2midi");
+  cmd[idx++] = abc_basename;
+  cmd[idx++] = (gchar *)("-o");
+  cmd[idx++] = midi_basename;
+  cmd[idx++] = NULL;
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
