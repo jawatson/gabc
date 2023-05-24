@@ -162,6 +162,26 @@ static const GActionEntry win_actions[] = {
 };
 
 
+/*
+ * The following article discusses the mapping;
+ * https://discourse.gnome.org/t/about-g-settings-bind-with-mapping-usage/2399
+ */
+static gboolean
+dark_mode_to_adw_color_scheme (GValue   *value,
+                          GVariant *variant,
+                          gpointer  user_data)
+{
+  gboolean dark_mode;
+  AdwColorScheme color_scheme;
+
+  dark_mode = g_variant_get_boolean (variant);
+  color_scheme = (dark_mode) ? ADW_COLOR_SCHEME_PREFER_DARK : ADW_COLOR_SCHEME_PREFER_LIGHT;
+  g_value_set_enum (value, color_scheme);
+
+  return TRUE;
+}
+
+
 static void
 gabc_window_init (GabcWindow *self)
 {
@@ -177,6 +197,17 @@ gabc_window_init (GabcWindow *self)
 	                           win_actions,
 	                           G_N_ELEMENTS (win_actions),
 	                           self);
+  AdwStyleManager* sm = adw_style_manager_get_default();
+
+  g_settings_bind_with_mapping (self->settings, "dark-theme",
+                              sm, "color-scheme",
+                              G_SETTINGS_BIND_GET,
+                              dark_mode_to_adw_color_scheme,
+                              NULL,
+                              NULL,
+                              NULL);
+
+  // todo free the sm
 
   self->abc_source_file = gtk_source_file_new();
 

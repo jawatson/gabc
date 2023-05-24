@@ -15,12 +15,14 @@
         <property name="title" translatable="yes">General</property>
         <child>
           <object class="AdwPreferencesGroup">
+
             <child>
               <object class="AdwActionRow" id="dark_theme">
                 <property name="title" translatable="yes">Prefer dark theme</property>
                 <property name="activatable_widget">dark_btn</property>
                 <child>
                   <object class="GtkSwitch" id="dark_btn">
+                    <property name="action-name">prefs.theme</property>
                     <property name="valign">center</property>
                   </object>
                 </child>
