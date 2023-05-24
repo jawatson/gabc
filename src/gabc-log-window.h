@@ -3,10 +3,9 @@
 #pragma once
 
 #include <gtk/gtk.h>
+#include <adwaita.h>
 
 G_BEGIN_DECLS
-
-//#define EXAMPLE_APP_PREFS_TYPE (example_app_prefs_get_type ())
 
 #define GABC_LOG_WINDOW_TYPE (gabc_log_window_get_type ())
 
