@@ -28,7 +28,7 @@ static void
 gabc_log_window_clear_log (GtkWidget *widget,
                            gpointer   data)
 {
-  GabcLogWindow *self = GABC_LOG_WINDOW(data);
+  GabcLogWindow *self = GABC_LOG_WINDOW (data);
   g_assert (GABC_IS_LOG_WINDOW (self));
   gtk_text_buffer_set_text (self->log_buffer, "", -1);
 }
@@ -39,9 +39,7 @@ gabc_log_window_init (GabcLogWindow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
 
-  g_signal_connect (self->log_clear_button, "clicked", G_CALLBACK (gabc_log_window_clear_log), self
-);
-
+  g_signal_connect (self->log_clear_button, "clicked", G_CALLBACK (gabc_log_window_clear_log), self);
 }
 
 static void
