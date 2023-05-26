@@ -45,6 +45,9 @@ struct _GabcWindow
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 static void
+gabc_app_window_dispose (GObject *object);
+
+static void
 gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
                               GVariant      *parameter G_GNUC_UNUSED,
                               gpointer       user_data);
@@ -135,19 +138,23 @@ set_file_extension (gchar *file_path, gchar *extension);
 static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
-	GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GtkWidgetClass *widget_class;
 
-        g_type_ensure (GTK_SOURCE_TYPE_VIEW);
+  G_OBJECT_CLASS (klass)->dispose = gabc_app_window_dispose;
 
-	gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
+  widget_class = GTK_WIDGET_CLASS (klass);
 
-        gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              main_text_view);
+  g_type_ensure (GTK_SOURCE_TYPE_VIEW);
 
-        gtk_widget_class_bind_template_child (widget_class,
-                                              GabcWindow,
-                                              buffer);
+  gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
+
+  gtk_widget_class_bind_template_child (widget_class,
+                                        GabcWindow,
+                                        main_text_view);
+
+  gtk_widget_class_bind_template_child (widget_class,
+                                        GabcWindow,
+                                        buffer);
 }
 
 
@@ -168,8 +175,8 @@ static const GActionEntry win_actions[] = {
  */
 static gboolean
 dark_mode_to_adw_color_scheme (GValue   *value,
-                          GVariant *variant,
-                          gpointer  user_data)
+                               GVariant *variant,
+                               gpointer  user_data)
 {
   gboolean dark_mode;
   AdwColorScheme color_scheme;
@@ -251,7 +258,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
                           GVariant      *parameter G_GNUC_UNUSED,
                           gpointer       user_data)
 {
-  GabcWindow *self = user_data;
+  GabcWindow *self = GABC_WINDOW (user_data);
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), "", -1);
   gtk_source_file_set_location (self->abc_source_file, NULL);
 }
@@ -315,7 +322,7 @@ file_open_cb (GObject       *file_dialog,
                                                         NULL);
   if (file) {
     open_file (self, file);
-    //g_object_unref (file);
+    g_object_unref (file);
   }
   g_object_unref (file_dialog);
 }
@@ -380,6 +387,7 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   }
 }
 
+
 static void
 gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
                               GVariant      *parameter G_GNUC_UNUSED,
@@ -424,9 +432,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gabc_window_save_to_abc_file_location (self);
   }
   g_object_unref (file_dialog);
-
 }
-
 
 
 static void
@@ -441,6 +447,7 @@ gabc_window_save_to_abc_file_location(GabcWindow *self)
                                     (GAsyncReadyCallback) gabc_window_save_file_async_cb,
                                     self);
 }
+
 
 static void
 gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
@@ -457,6 +464,7 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
   g_object_unref (saver);
 }
 
+
 static void
 gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
                           GVariant      *parameter G_GNUC_UNUSED,
@@ -464,6 +472,7 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
 {
   gchar *abc_file_path, *ps_file_path;
   GabcWindow *self = user_data;
+
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   gabc_window_play_media_file (ps_file_path, self);
@@ -471,6 +480,7 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
   g_free (abc_file_path);
   g_free (ps_file_path);
 }
+
 
 static void
 gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
@@ -503,7 +513,6 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
-  //g_print("%s",g_uuid_string_random());
   file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
 
@@ -591,7 +600,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   if (fmt_file_path != 0)
   {
-    cmd[idx++] = "-F";
+    cmd[idx++] = (gchar *)("-F");
     cmd[idx++] = fmt_file_path;
   }
 
