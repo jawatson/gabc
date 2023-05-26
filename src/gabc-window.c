@@ -565,14 +565,15 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
-    working_dir_path = g_getenv("XDG_CACHE_HOME");
+    // copy the str so we can free it later.
+    working_dir_path = g_strdup (g_getenv ("XDG_CACHE_HOME"));
   }
   else
   {
+    // gtk_source_file_get_location data is owned by the instance.
     working_file = gtk_source_file_get_location (self->abc_source_file);
-    working_dir_file = g_file_get_parent (working_file); // the crash is here
+    working_dir_file = g_file_get_parent (working_file);
     working_dir_path = g_file_get_path (working_dir_file);
-    g_object_unref (working_file); //commenting these out stops the crash..?
     g_object_unref (working_dir_file); // also working dir path...
   }
 
@@ -620,7 +621,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   //g_array_free
   g_free (standard_output);
   g_free (standard_error);
-  //g_free (working_dir_path);
+  g_free (working_dir_path);
   g_free (page_numbering_mode);
 
   return ps_file_path;
