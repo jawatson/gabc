@@ -189,6 +189,8 @@ gabc_window_init (GabcWindow *self)
   GtkSourceLanguage *language;
   const gchar *id;
 
+  AdwStyleManager *sm;
+
   gtk_widget_init_template (GTK_WIDGET (self));
 
   self->settings = g_settings_new ("me.pm.m0dns.gabc");
@@ -197,7 +199,7 @@ gabc_window_init (GabcWindow *self)
 	                           win_actions,
 	                           G_N_ELEMENTS (win_actions),
 	                           self);
-  AdwStyleManager* sm = adw_style_manager_get_default();
+  sm = adw_style_manager_get_default();
 
   g_settings_bind_with_mapping (self->settings, "dark-theme",
                               sm, "color-scheme",
@@ -208,7 +210,6 @@ gabc_window_init (GabcWindow *self)
                               NULL);
 
   // todo free the sm
-
   self->abc_source_file = gtk_source_file_new();
 
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
@@ -259,8 +260,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
 GtkFileFilter *
 get_abc_file_filter (void)
 {
-  GtkFileFilter *abc_filter;
-  abc_filter = gtk_file_filter_new();
+  GtkFileFilter *abc_filter = gtk_file_filter_new();
   gtk_file_filter_add_pattern(abc_filter, "*.abc");
   return abc_filter;
 }
@@ -269,8 +269,7 @@ get_abc_file_filter (void)
 GListStore *
 get_abc_filter_list (GtkFileFilter *abc_filter)
 {
-  GListStore *filter_list;
-  filter_list = g_list_store_new( G_TYPE_OBJECT );
+  GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
   g_list_store_append (filter_list, G_OBJECT (abc_filter));
   return filter_list;
 }
@@ -373,7 +372,6 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
-    g_print("open a dialog the source file saver with target");
     gabc_window_save_file_dialog (NULL, NULL, self);
   }
   else
@@ -493,7 +491,6 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
 gchar *
 gabc_window_write_buffer_to_file (GabcWindow *self)
 {
-
   GtkTextIter start;
   GtkTextIter end;
   char *text;
@@ -558,33 +555,46 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gchar *ps_file_path;
   gchar *working_dir_path;
 
+  char *page_numbering_mode;
+
   GFile *working_file;
   GFile *working_dir_file;
 
   gint idx;
   gchar *cmd[20];
 
-  if (self->abc_source_file == NULL) {
+  if (gtk_source_file_get_location(self->abc_source_file) == NULL)
+  {
     working_dir_path = g_getenv("XDG_CACHE_HOME");
   }
   else
   {
     working_file = gtk_source_file_get_location (self->abc_source_file);
-    working_dir_file = g_file_get_parent (working_file);
+    working_dir_file = g_file_get_parent (working_file); // the crash is here
     working_dir_path = g_file_get_path (working_dir_file);
+    g_object_unref (working_file); //commenting these out stops the crash..?
+    g_object_unref (working_dir_file); // also working dir path...
   }
 
   ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
-  idx = 0;
 
+  idx = 0;
   cmd[idx++] = (gchar *)("abcm2ps");
+
   if (g_settings_get_boolean (self->settings, "abcm2ps-show-errors")) {
-      g_print("Showing the errors");
       cmd[idx++] = (gchar *)("-i");
   }
 
-  char *page_numbering_mode = g_settings_get_string (self->settings, "abcm2ps-page-numbering");
-  g_print ("Page numbering mode: %s \n", page_numbering_mode);
+  gchar *fmt_file_path = g_settings_get_string (self->settings, "abcm2ps-fmt-file-path");
+
+  if (fmt_file_path != 0)
+  {
+    cmd[idx++] = "-F";
+    cmd[idx++] = fmt_file_path;
+  }
+
+
+  page_numbering_mode = g_settings_get_string (self->settings, "abcm2ps-page-numbering");
   cmd[idx++] = (gchar *)("-N");
   cmd[idx++] = (page_numbering_mode);
 
@@ -592,9 +602,6 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   cmd[idx++] = ps_file_path;
   cmd[idx++] = file_path;
   cmd[idx++] = NULL;
-
-  g_print("Working Dir: %s \n", working_dir_path);
-  g_print("%s %s %s %s %s \n", cmd[0], cmd[1], cmd[2], cmd[3], cmd[4]);
 
   result = g_spawn_sync (working_dir_path, (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
@@ -611,13 +618,10 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gabc_log_window_append_to_log (self->log_window, standard_error);
 
   //g_array_free
-  //
   g_free (standard_output);
   g_free (standard_error);
-  g_free (working_dir_path);
-
-  g_object_unref (working_file);
-  g_object_unref (working_dir_file);
+  //g_free (working_dir_path);
+  g_free (page_numbering_mode);
 
   return ps_file_path;
 }
@@ -695,6 +699,7 @@ play_media_cb (GtkFileLauncher *launcher,
   g_object_unref (launcher);
 }
 
+
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
 {
@@ -708,10 +713,10 @@ gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
   g_object_unref (media_file);
 }
 
+
 /*
  * LOG DIALOG
  */
-
 static void
 gabc_window_open_log_dialog (GSimpleAction *action,
                              GVariant      *parameter,

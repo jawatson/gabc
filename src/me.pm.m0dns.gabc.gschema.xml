@@ -15,6 +15,11 @@
       </description>
     </key>
 
+    <key name="abcm2ps-fmt-file-path" type="s">
+      <default>""</default>
+      <summary>Absolute file path to the fmt file</summary>
+    </key>
+
     <key name="abcm2ps-page-numbering" type="s">
       <choices>
         <choice value='0'/> <!-- no page numbers -->

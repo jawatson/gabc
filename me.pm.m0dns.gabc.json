@@ -13,16 +13,31 @@
         "--filesystem=home"
     ],
     "cleanup" : [
+    	"/bin/abc2abc",
+    	"/bin/abcmatch",
+    	"/bin/mftext",
+    	"/bin/midi2abc",
+    	"/bin/midicopy",
+    	"/bin/midistats",
+    	"/bin/yaps",
         "/include",
         "/lib/pkgconfig",
+        "/lib/debug/source/abcm2ps",
+        "/lib/debug/source/abcmidi",
         "/man",
         "/share/doc",
+        "/share/doc/abcm2ps",
+        "/share/doc/abcmidi",
         "/share/gtk-doc",
         "/share/man",
         "/share/pkgconfig",
         "*.la",
         "*.a"
     ],
+    "cleanup-commands" : [
+  	"strip /bin/abcm2ps",
+  	"strip /bin/anc2midi"
+  	],
     "modules" : [
         {
             "name": "abcm2ps",
@@ -33,6 +48,9 @@
                     "type" : "git",
                     "url": "https://github.com/lewdlime/abcm2ps.git"
                 }
+            ],
+            "build-options": [
+                {"strip": true}
             ]
         },
         {

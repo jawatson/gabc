@@ -70,20 +70,7 @@
         <property name="title" translatable="yes">abcm2ps</property>
         <child>
           <object class="AdwPreferencesGroup">
-            <!--
-            <child>
-              <object class="AdwActionRow">
-                <property name="title" translatable="yes">Format directory</property>
-                <property name="subtitle">/home/jwatson/abc_formats</property>
-                <property name="activatable_widget">format_dir_btn</property>
-                <child>
-                  <object class="GtkButton" id="music_dir_btn">
-                    <property name="valign">center</property>
-                  </object>
-                </child>
-              </object>
-            </child>
-            -->
+
             <child>
               <object class="AdwActionRow">
                 <property name="title" translatable="yes">Show errors</property>
@@ -91,6 +78,26 @@
                 <child>
                   <object class="GtkSwitch" id="abcm2ps_errors_switch">
                     <property name="valign">center</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="AdwActionRow" id="abcm2ps_fmt_file_action_row">
+                <property name="title" translatable="yes">FMT File Path</property>
+                <property name="subtitle" translatable="yes">/path/to/file</property>
+                <!-- <property name="activatable_widget">abcm2ps_fmt_file_btn</property>-->
+                <child>
+                  <object class="GtkButton" id="abcm2ps_fmt_clear_btn">
+                    <property name="valign">center</property>
+                    <property name="label">Clear</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton" id="abcm2ps_fmt_file_btn">
+                    <property name="valign">center</property>
+                    <property name="label">Select</property>
                   </object>
                 </child>
               </object>
