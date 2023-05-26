@@ -215,6 +215,7 @@ gabc_window_init (GabcWindow *self)
 	                           win_actions,
 	                           G_N_ELEMENTS (win_actions),
 	                           self);
+
   sm = adw_style_manager_get_default();
 
   g_settings_bind_with_mapping (self->settings, "dark-theme",
@@ -225,15 +226,14 @@ gabc_window_init (GabcWindow *self)
                               NULL,
                               NULL);
 
-  // todo free the sm
-  self->abc_source_file = gtk_source_file_new();
+  self->abc_source_file = gtk_source_file_new ();
 
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
-  self->log_window = gabc_log_window_new(self);
+  self->log_window = gabc_log_window_new (self);
 
-  lm = gtk_source_language_manager_get_default();
+  lm = gtk_source_language_manager_get_default ();
   id = "abc";
   language = gtk_source_language_manager_get_language (lm, id);
   if (language == NULL)
@@ -256,6 +256,8 @@ gabc_app_window_dispose (GObject *object)
   win = GABC_WINDOW (object);
 
   g_clear_object (&win->settings);
+
+  g_clear_object (&win->abc_source_file);
 
   G_OBJECT_CLASS (gabc_window_parent_class)->dispose (object);
 }
