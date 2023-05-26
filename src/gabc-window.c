@@ -555,7 +555,8 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gchar *ps_file_path;
   gchar *working_dir_path;
 
-  char *page_numbering_mode;
+  gchar *fmt_file_path;
+  gchar *page_numbering_mode;
 
   GFile *working_file;
   GFile *working_dir_file;
@@ -586,14 +587,13 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
       cmd[idx++] = (gchar *)("-i");
   }
 
-  gchar *fmt_file_path = g_settings_get_string (self->settings, "abcm2ps-fmt-file-path");
+  fmt_file_path = g_settings_get_string (self->settings, "abcm2ps-fmt-file-path");
 
   if (fmt_file_path != 0)
   {
     cmd[idx++] = "-F";
     cmd[idx++] = fmt_file_path;
   }
-
 
   page_numbering_mode = g_settings_get_string (self->settings, "abcm2ps-page-numbering");
   cmd[idx++] = (gchar *)("-N");
@@ -622,6 +622,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   g_free (standard_output);
   g_free (standard_error);
   g_free (working_dir_path);
+  g_free (fmt_file_path);
   g_free (page_numbering_mode);
 
   return ps_file_path;
