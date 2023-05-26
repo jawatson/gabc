@@ -34,9 +34,10 @@ struct _GabcWindow
 
         GSettings           *settings;
 
-	GtkHeaderBar        *header_bar;
+        AdwWindowTitle      *window_title;
 	GtkSourceView       *main_text_view;
         GtkSourceBuffer     *buffer;
+
         GtkSourceFile       *abc_source_file;
 
         GabcLogWindow       *log_window;
@@ -84,6 +85,9 @@ static void
 open_file_cb (GtkSourceFileLoader *loader,
               GAsyncResult        *result,
               GabcWindow          *self);
+
+static void
+gabc_window_set_window_title (GabcWindow *self);
 
 static void
 gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
@@ -155,6 +159,11 @@ gabc_window_class_init (GabcWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcWindow,
                                         buffer);
+
+  gtk_widget_class_bind_template_child (widget_class,
+                                        GabcWindow,
+                                        window_title);
+
 }
 
 
@@ -261,6 +270,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = GABC_WINDOW (user_data);
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), "", -1);
   gtk_source_file_set_location (self->abc_source_file, NULL);
+  gabc_window_set_window_title (self);
 }
 
 
@@ -322,9 +332,43 @@ file_open_cb (GObject       *file_dialog,
                                                         NULL);
   if (file) {
     open_file (self, file);
+    gabc_window_set_window_title (self);
     g_object_unref (file);
   }
   g_object_unref (file_dialog);
+}
+
+
+static void
+gabc_window_set_window_title (GabcWindow *self)
+{
+  GFile *source_file;
+  GFile *parent_file;
+  gchar *title;
+  gchar *sub_title;
+
+  source_file = gtk_source_file_get_location(self->abc_source_file);
+
+
+  if (G_IS_FILE (source_file))
+    {
+      title = g_file_get_basename (source_file);
+      parent_file = g_file_get_parent (source_file);
+      sub_title = g_file_get_path (parent_file);
+      g_object_unref (parent_file);
+    }
+  else
+    {
+      title = g_strdup ("New ABC Document");
+      sub_title = g_strdup ("");
+    }
+
+  adw_window_title_set_title (self->window_title, title);
+  adw_window_title_set_subtitle (self->window_title, sub_title);
+
+  g_free (title);
+  g_free (sub_title);
+
 }
 
 
@@ -430,6 +474,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
   if (file) {
     gtk_source_file_set_location(self->abc_source_file, file);
     gabc_window_save_to_abc_file_location (self);
+    gabc_window_set_window_title (self);
   }
   g_object_unref (file_dialog);
 }

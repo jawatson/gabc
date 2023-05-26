@@ -1,33 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- https://github.com/GNOME/gnome-text-editor/blob/main/src/editor-window.ui -->
 <interface>
   <requires lib="gtk" version="4.0"/>
   <requires lib="Adw" version="1.0"/>
   <requires lib="GtkSource" version="5.0"/>
   <template class="GabcWindow" parent="AdwApplicationWindow">
-    <property name="default-width">600</property>
-    <property name="default-height">300</property>
-    <property name="title">gabc</property>
+    <property name="default-width">700</property>
+    <property name="default-height">350</property>
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkHeaderBar" id="header_bar">
+          <object class="AdwHeaderBar" id="header_bar">
+            <property name="centering-policy">ADW_CENTERING_POLICY_STRICT</property>"
             <child type="start">
               <object class="GtkButton" id="open_button">
                 <property name="label">Open</property>
                 <property name="action-name">win.open</property>
               </object>
             </child>
+
             <child type="start">
               <object class="GtkButton"  id="play_button">
                 <property name="icon-name">folder-music-symbolic</property>
                 <property name="action-name">win.engrave</property>
               </object>
             </child>
+
             <child type="start">
               <object class="GtkButton"  id="engrave_button">
                 <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="action-name">win.play</property>
+              </object>
+            </child>
+
+             <child type="title">
+              <object class="AdwWindowTitle" id="window_title">
+                <property name="title">New ABC Document</property>
+                <property name="subtitle"></property>
               </object>
             </child>
 

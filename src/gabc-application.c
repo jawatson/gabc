@@ -106,11 +106,10 @@ gabc_application_quit_action (GSimpleAction *action,
 
 static void
 gabc_application_preferences_action (GSimpleAction *action,
-                              GVariant      *parameter,
-                              gpointer       user_data)
+                                     GVariant      *parameter,
+                                     gpointer       user_data)
 {
   GabcPrefsWindow *prefs;
-  //GabcWindow *win;
 
   GabcApplication *self = user_data;
   GtkWindow *window = NULL;
