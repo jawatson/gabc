@@ -139,11 +139,17 @@ gabc_application_init (GabcApplication *self)
 	                                 "app.quit",
 	                                 (const char *[]) { "<primary>q", NULL });
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "win.new",
+                                         (const char *[]) { "<Ctrl>n", NULL });
+        gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.open",
                                          (const char *[]) { "<Ctrl>o", NULL });
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.save",
                                          (const char *[]) { "<Ctrl>s", NULL });
+        gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "win.save_as",
+                                         (const char *[]) { "<Shft><Ctrl>s", NULL });
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.engrave",
                                          (const char *[]) { "<Ctrl>e", NULL });
@@ -153,5 +159,9 @@ gabc_application_init (GabcApplication *self)
         gtk_application_set_accels_for_action (GTK_APPLICATION (self),
                                          "win.open-log",
                                          (const char *[]) { "<Ctrl>l", NULL });
+        gtk_application_set_accels_for_action (GTK_APPLICATION (self),
+                                         "app.preferences",
+                                         (const char *[]) { "<Ctrl>comma", NULL });
+
 }
 
