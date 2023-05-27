@@ -43,6 +43,13 @@ G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 static void
 gabc_app_window_dispose (GObject *object);
 
+static gboolean
+on_drop (GtkDropTarget *target,
+         const GValue *value,
+         double x,
+         double y,
+         gpointer data);
+
 static void
 gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
                               GVariant      *parameter G_GNUC_UNUSED,
@@ -201,10 +208,25 @@ gabc_window_init (GabcWindow *self)
   const gchar *id;
 
   AdwStyleManager *sm;
+  GtkDropTarget *target;
 
   gtk_widget_init_template (GTK_WIDGET (self));
 
   self->settings = g_settings_new ("me.pm.m0dns.gabc");
+
+  target = gtk_drop_target_new (G_TYPE_INVALID, GDK_ACTION_COPY);
+
+  gtk_drop_target_set_gtypes (target, (GType[1]) { GDK_TYPE_FILE_LIST, }, 1);
+
+  /*
+   * see https://developer.gnome.org/documentation/tutorials/drag-and-drop.html?highlight=target
+   * for how to handle enter and leave targets.
+   */
+  g_signal_connect (target, "drop", G_CALLBACK (on_drop), self);
+  //g_signal_connect (target, "enter", G_CALLBACK (on_enter), self->main_text_view);
+  //g_signal_connect (target, "leave", G_CALLBACK (on_leave), self->main_text_view);
+
+  gtk_widget_add_controller (GTK_WIDGET (self->main_text_view), GTK_EVENT_CONTROLLER (target));
 
   g_action_map_add_action_entries (G_ACTION_MAP (self),
 	                           win_actions,
@@ -239,7 +261,33 @@ gabc_window_init (GabcWindow *self)
   {
     gtk_source_buffer_set_language (self->buffer, language);
   }
+}
 
+
+static gboolean
+on_drop (GtkDropTarget *target,
+         const GValue *value,
+         double x,
+         double y,
+         gpointer data)
+{
+  GdkFileList *file_list;
+  GSList *list;
+  GFile* file;
+
+  GabcWindow *self = data;
+
+  file_list = g_value_get_boxed (value);
+
+  list = gdk_file_list_get_files (file_list);
+
+  file = g_slist_nth_data (list, 0);
+
+  open_file (self, file);
+
+  g_slist_free (list);
+
+  return TRUE;
 }
 
 
@@ -329,7 +377,6 @@ file_open_cb (GObject       *file_dialog,
                                                         NULL);
   if (file) {
     open_file (self, file);
-    gabc_window_set_window_title (self);
     g_object_unref (file);
   }
   g_object_unref (file_dialog);
@@ -388,8 +435,8 @@ open_file_cb (GtkSourceFileLoader *loader,
     gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
+    gabc_window_set_window_title (self);
   }
-
   g_object_unref (loader);
 }
 
