@@ -1,8 +1,8 @@
 # gabc
 
 A small abc editor for Gnome.  I doubt if the world really needs another 
-abc editor but I was looking for a small project that would help me learn more 
-about GTK4 the Gnome Builder application and FlatPak.
+abc editor but it's really just a means of helping me learn more 
+about GTK4, Gnome Builder and FlatPak.
 
 Gabc (Gnome abc) allows users to open/edit/save abc files and render them either
 as engraved music notation or as playable midi files.
