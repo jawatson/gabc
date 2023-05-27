@@ -23,11 +23,6 @@
 #include "gabc-window.h"
 #include "gabc-log-window.h"
 
-/*
- *
- * TODO add a dispose function
- */
-
 struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
