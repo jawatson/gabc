@@ -22,11 +22,23 @@
 
 #include <adwaita.h>
 #include <gtksourceview/gtksource.h>
+#include "gabc-application.h"
+
 
 G_BEGIN_DECLS
 
 #define GABC_TYPE_WINDOW (gabc_window_get_type())
 
 G_DECLARE_FINAL_TYPE (GabcWindow, gabc_window, GABC, WINDOW, AdwApplicationWindow)
+
+GabcWindow *
+gabc_window_new (GabcApplication *app);
+
+void
+gabc_window_open_file (GabcWindow       *self,
+           GFile            *file);
+
+
+
 
 G_END_DECLS

@@ -41,10 +41,10 @@ struct _GabcWindow
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 static void
-gabc_app_window_dispose (GObject *object);
+gabc_window_dispose (GObject *object);
 
 static gboolean
-on_drop (GtkDropTarget *target,
+gabc_window_on_drop (GtkDropTarget *target,
          const GValue *value,
          double x,
          double y,
@@ -79,12 +79,12 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
                                 GabcWindow         *self);
 
 static void
-file_open_cb (GObject      *source_object,
+gabc_window_file_open_cb (GObject      *source_object,
               GAsyncResult *res,
               gpointer      data);
 
 static void
-open_file_cb (GtkSourceFileLoader *loader,
+gabc_window_open_file_cb (GtkSourceFileLoader *loader,
               GAsyncResult        *result,
               GabcWindow          *self);
 
@@ -96,9 +96,6 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
                           GVariant      *parameter G_GNUC_UNUSED,
                           gpointer       user_data);
 
-static void
-open_file (GabcWindow       *self,
-           GFile            *file);
 
 static void
 gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
@@ -129,13 +126,13 @@ gabc_window_open_log_dialog (GSimpleAction *action,
 
 // General Utilities
 GtkFileFilter *
-get_abc_file_filter (void);
+gabc_window_get_abc_file_filter (void);
 
 GListStore *
-get_abc_filter_list (GtkFileFilter *abc_filter);
+gabc_window_get_abc_filter_list (GtkFileFilter *abc_filter);
 
 gchar *
-set_file_extension (gchar *file_path, gchar *extension);
+gabc_window_set_file_extension (gchar *file_path, gchar *extension);
 
 /*
  * END OF DECLARATIONS
@@ -146,7 +143,7 @@ gabc_window_class_init (GabcWindowClass *klass)
 {
   GtkWidgetClass *widget_class;
 
-  G_OBJECT_CLASS (klass)->dispose = gabc_app_window_dispose;
+  G_OBJECT_CLASS (klass)->dispose = gabc_window_dispose;
 
   widget_class = GTK_WIDGET_CLASS (klass);
 
@@ -222,7 +219,7 @@ gabc_window_init (GabcWindow *self)
    * see https://developer.gnome.org/documentation/tutorials/drag-and-drop.html?highlight=target
    * for how to handle enter and leave targets.
    */
-  g_signal_connect (target, "drop", G_CALLBACK (on_drop), self);
+  g_signal_connect (target, "drop", G_CALLBACK (gabc_window_on_drop), self);
   //g_signal_connect (target, "enter", G_CALLBACK (on_enter), self->main_text_view);
   //g_signal_connect (target, "leave", G_CALLBACK (on_leave), self->main_text_view);
 
@@ -265,7 +262,7 @@ gabc_window_init (GabcWindow *self)
 
 
 static gboolean
-on_drop (GtkDropTarget *target,
+gabc_window_on_drop (GtkDropTarget *target,
          const GValue *value,
          double x,
          double y,
@@ -283,7 +280,7 @@ on_drop (GtkDropTarget *target,
 
   file = g_slist_nth_data (list, 0);
 
-  open_file (self, file);
+  gabc_window_open_file (self, file);
 
   g_slist_free (list);
 
@@ -292,7 +289,7 @@ on_drop (GtkDropTarget *target,
 
 
 static void
-gabc_app_window_dispose (GObject *object)
+gabc_window_dispose (GObject *object)
 {
   GabcWindow *win;
 
@@ -303,6 +300,12 @@ gabc_app_window_dispose (GObject *object)
   g_clear_object (&win->abc_source_file);
 
   G_OBJECT_CLASS (gabc_window_parent_class)->dispose (object);
+}
+
+GabcWindow *
+gabc_window_new (GabcApplication *app)
+{
+  return g_object_new (GABC_TYPE_WINDOW, "application", app, NULL);
 }
 
 
@@ -320,7 +323,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
 
 
 GtkFileFilter *
-get_abc_file_filter (void)
+gabc_window_get_abc_file_filter (void)
 {
   GtkFileFilter *abc_filter = gtk_file_filter_new();
   gtk_file_filter_add_pattern(abc_filter, "*.abc");
@@ -329,7 +332,7 @@ get_abc_file_filter (void)
 
 
 GListStore *
-get_abc_filter_list (GtkFileFilter *abc_filter)
+gabc_window_get_abc_filter_list (GtkFileFilter *abc_filter)
 {
   GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
   g_list_store_append (filter_list, G_OBJECT (abc_filter));
@@ -350,8 +353,8 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Open abc File");
 
-  abc_filter = get_abc_file_filter();
-  filter_list = get_abc_filter_list(abc_filter);
+  abc_filter = gabc_window_get_abc_file_filter();
+  filter_list = gabc_window_get_abc_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -359,7 +362,7 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gtk_file_dialog_open (gfd,
                         GTK_WINDOW (self),
                         NULL,
-                        file_open_cb,
+                        gabc_window_file_open_cb,
                         G_OBJECT (self));
 
   g_object_unref (abc_filter);
@@ -368,7 +371,7 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 
 
 static void
-file_open_cb (GObject       *file_dialog,
+gabc_window_file_open_cb (GObject       *file_dialog,
               GAsyncResult  *res,
               gpointer       self)
 {
@@ -376,7 +379,7 @@ file_open_cb (GObject       *file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-    open_file (self, file);
+    gabc_window_open_file (self, file);
     g_object_unref (file);
   }
   g_object_unref (file_dialog);
@@ -417,7 +420,7 @@ gabc_window_set_window_title (GabcWindow *self)
 
 
 static void
-open_file_cb (GtkSourceFileLoader *loader,
+gabc_window_open_file_cb (GtkSourceFileLoader *loader,
               GAsyncResult        *result,
               GabcWindow          *self)
 {
@@ -441,9 +444,9 @@ open_file_cb (GtkSourceFileLoader *loader,
 }
 
 
-static void
-open_file (GabcWindow       *self,
-           GFile            *file)
+void
+gabc_window_open_file (GabcWindow       *self,
+                      GFile            *file)
 {
   GtkSourceFileLoader *loader;
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
@@ -453,7 +456,7 @@ open_file (GabcWindow       *self,
   gtk_source_file_loader_load_async (loader,
                                      G_PRIORITY_DEFAULT,
                                      NULL, NULL, NULL, NULL,
-                                     (GAsyncReadyCallback) open_file_cb,
+                                     (GAsyncReadyCallback) gabc_window_open_file_cb,
                                      self);
 }
 
@@ -490,8 +493,8 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title (gfd, "Save abc File");
 
-  abc_filter = get_abc_file_filter();
-  filter_list = get_abc_filter_list(abc_filter);
+  abc_filter = gabc_window_get_abc_file_filter();
+  filter_list = gabc_window_get_abc_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -610,7 +613,7 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
 }
 
 gchar *
-set_file_extension (gchar *file_path, gchar *extension)
+gabc_window_set_file_extension (gchar *file_path, gchar *extension)
 {
   GFile *parent_file;
   gchar *parent_dir;
@@ -676,7 +679,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
     g_object_unref (working_dir_file); // also working dir path...
   }
 
-  ps_file_path = set_file_extension (file_path, (gchar *)("ps"));
+  ps_file_path = gabc_window_set_file_extension (file_path, (gchar *)("ps"));
 
   idx = 0;
   cmd[idx++] = (gchar *)("abcm2ps");
@@ -748,7 +751,7 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 
   path_file = g_file_new_for_path(file_path);
   abc_basename = g_file_get_basename (path_file);
-  midi_file_path = set_file_extension (file_path, (gchar*)("mid"));
+  midi_file_path = gabc_window_set_file_extension (file_path, (gchar*)("mid"));
   midi_file = g_file_new_for_path(midi_file_path);
   midi_basename = g_file_get_basename (midi_file);
 

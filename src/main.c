@@ -23,6 +23,25 @@
 #include <glib/gi18n.h>
 
 #include "gabc-application.h"
+#include "gabc-window.h"
+
+
+static void
+open (GApplication  *application,
+      GFile        **files,
+      gint           n_files,
+      const gchar   *hint)
+{
+  GabcWindow *window;
+
+  window = GABC_WINDOW (gabc_window_new (GABC_APPLICATION (application)));
+
+  gabc_window_open_file(window, files[0]);
+
+  gtk_window_present (GTK_WINDOW (window));
+}
+
+
 
 int
 main (int   argc,
@@ -35,7 +54,9 @@ main (int   argc,
 	bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
 	textdomain (GETTEXT_PACKAGE);
 
-	app = gabc_application_new ("me.pm.m0dns.gabc", G_APPLICATION_DEFAULT_FLAGS);
+	//app = gabc_application_new ("me.pm.m0dns.gabc", G_APPLICATION_DEFAULT_FLAGS);
+  	app = gabc_application_new ("me.pm.m0dns.gabc", G_APPLICATION_HANDLES_OPEN);
+        g_signal_connect (app, "open", G_CALLBACK (open), NULL);
 	ret = g_application_run (G_APPLICATION (app), argc, argv);
 
 	return ret;
