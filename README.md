@@ -1,23 +1,44 @@
 # gabc
 
-A small abc editor for Gnome.  I doubt if the world really needs another 
+Gnome ABC, a small abc editor for Gnome.  I doubt if the world needs another 
 abc editor but it's really just a means of helping me learn more 
 about GTK4, Gnome Builder and FlatPak.
 
-Gabc (Gnome abc) allows users to open/edit/save abc files and render them either
+Gabc allows users to open/edit/save abc files and render them either
 as engraved music notation or as playable midi files.
 
-File engraving and playing is performed by the [abcm2ps](https://github.com/lewdlime/abcm2ps) 
-and [abc2midi](https://github.com/sshlien/abcmidi) applications
-respectively.  In keeping with Flatpak design practices, these have been 
-included as modules.  Copyright of these applications is neither claimed nor 
+## Preferences
+
+A few preferences, related to abcm2ps are supported;
+
+- Show errors.  If enabled will indicate problems with the input file with
+a red circle in the engraved output.
+- FMT File Path. This specifies the path to a .fmt file that should be searched 
+for notation symbols.  e.g. Users wishing to employ Grey Larsen's 
+formatting for flute or whistle ornaments may use this parameter to specify the 
+location of of a local copy of the file 
+[larsen.fmt](https://github.com/jawatson/abc-larsen/blob/master/larsen.fmt).
+- Page numbering specifies the use and placement of page numbers in the rendered output. 
+
+## Credits
+
+### abcm2ps 
+File engraving is performed by the [abcm2ps](https://github.com/lewdlime/abcm2ps) 
+
+### abc2midi
+Conversion from abc to midi is performed using the 
+[abc2midi](https://github.com/sshlien/abcmidi) application.
+
+### Syntax highlighting
+The abc notation syntax highlighting is based upon the .lang file created by
+B. Petersen, available [here](https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang)
+
+
+
+In keeping with Flatpak design practices, these have been 
+packaged as modules.  Copyright of these applications is neither claimed nor 
 should be inferred.
  
-The abc notation syntax highlighting is based upon the .lang file created by
-B. Petersen, available at;
-
-[https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang](https://github.com/r10s/gtksourceview-abc/blob/master/abc.lang)
-
 
 
 
