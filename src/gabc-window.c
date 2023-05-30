@@ -567,7 +567,17 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
 
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
-  gabc_window_play_media_file (ps_file_path, self);
+  if ((ps_file_path != NULL) && (ps_file_path[0] != '\0'))
+    {
+       gabc_window_play_media_file (ps_file_path, self);
+    }
+  else
+    {
+       GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error engraving abc input");
+       gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
+       g_object_unref (alert_dialog);
+    }
+
 
   g_free (abc_file_path);
   g_free (ps_file_path);
@@ -583,7 +593,16 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
-  gabc_window_play_media_file (midi_file_path, self);
+  if ((midi_file_path != NULL) && (midi_file_path[0] != '\0'))
+    {
+       gabc_window_play_media_file (midi_file_path, self);
+    }
+  else
+    {
+       GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error converting abc input");
+       gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
+       g_object_unref (alert_dialog);
+    }
 
   g_free (abc_file_path);
   g_free (midi_file_path);
@@ -719,6 +738,10 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gabc_log_window_append_to_log (self->log_window, standard_output);
   gabc_log_window_append_to_log (self->log_window, standard_error);
 
+  if (exit_status != 0)
+    {
+      ps_file_path = g_strdup ("");
+    }
   //g_array_free
   g_free (standard_output);
   g_free (standard_error);
@@ -748,6 +771,7 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 
   gint idx;
   gchar *cmd[10];
+  gchar *error_msg = NULL;
 
   path_file = g_file_new_for_path(file_path);
   abc_basename = g_file_get_basename (path_file);
@@ -767,13 +791,21 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
                       &standard_output, &standard_error,
                       &exit_status, &error);
 
-  if (result != TRUE ) {
-    gabc_log_window_append_to_log (self->log_window, error->message);
-    g_clear_error (&error);
-  }
+  if (result != TRUE )
+    {
+      gabc_log_window_append_to_log (self->log_window, error->message);
+      g_clear_error (&error);
+    }
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
   gabc_log_window_append_to_log (self->log_window, standard_error);
+
+  error_msg = g_strrstr (standard_output, "No tune processed");
+
+  if (error_msg  || result == FALSE)
+    {
+      midi_file_path = g_strdup ("");
+    }
 
   g_object_unref (path_file);
   g_object_unref (midi_file);
