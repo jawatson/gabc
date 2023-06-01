@@ -391,17 +391,24 @@ gabc_window_set_window_title (GabcWindow *self)
 {
   GFile *source_file;
   GFile *parent_file;
+  GFile *home_file;
   gchar *title;
   gchar *sub_title;
+  gchar *relative_path;
 
   source_file = gtk_source_file_get_location(self->abc_source_file);
-
 
   if (G_IS_FILE (source_file))
     {
       title = g_file_get_basename (source_file);
       parent_file = g_file_get_parent (source_file);
       sub_title = g_file_get_path (parent_file);
+      home_file = g_file_new_for_path (g_getenv ("HOME"));
+      sub_title = g_file_get_relative_path (home_file, parent_file);
+      if (sub_title == NULL)
+        {
+          sub_title = g_file_get_path (parent_file);
+        }
       g_object_unref (parent_file);
     }
   else
