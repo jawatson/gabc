@@ -394,7 +394,6 @@ gabc_window_set_window_title (GabcWindow *self)
   GFile *home_file;
   gchar *title;
   gchar *sub_title;
-  gchar *relative_path;
 
   source_file = gtk_source_file_get_location(self->abc_source_file);
 
@@ -410,6 +409,7 @@ gabc_window_set_window_title (GabcWindow *self)
           sub_title = g_file_get_path (parent_file);
         }
       g_object_unref (parent_file);
+      g_object_unref (home_file);
     }
   else
     {
