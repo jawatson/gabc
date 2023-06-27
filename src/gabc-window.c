@@ -777,6 +777,8 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   GFile *path_file;
   GFile *midi_file;
 
+  gint barfly_mode;
+
   gint idx;
   gchar *cmd[10];
   gchar *error_msg = NULL;
@@ -787,11 +789,27 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
   midi_file = g_file_new_for_path(midi_file_path);
   midi_basename = g_file_get_basename (midi_file);
 
+  barfly_mode = g_settings_get_enum (self->settings, "abc2midi-barfly-mode");
+
   idx = 0;
   cmd[idx++] = (gchar *)("abc2midi");
   cmd[idx++] = abc_basename;
+
   cmd[idx++] = (gchar *)("-o");
   cmd[idx++] = midi_basename;
+
+
+  if ( barfly_mode == 1 )
+    {
+      cmd[idx++] = (gchar *)("-BF");
+      cmd[idx++] = (gchar *)("1");
+    }
+  else if ( barfly_mode == 2)
+    {
+      cmd[idx++] = (gchar *)("-BF");
+      cmd[idx++] = (gchar *)("2");
+    }
+
   cmd[idx++] = NULL;
 
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,

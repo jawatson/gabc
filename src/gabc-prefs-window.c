@@ -13,6 +13,8 @@ struct _GabcPrefsWindow
   GtkWidget *abcm2ps_errors_switch;
   GtkWidget *abcm2ps_page_number_combo;
 
+  GtkWidget *abc2midi_barfly_mode_combo;
+
   AdwActionRow *abcm2ps_fmt_file_action_row;
   GtkButton *abcm2ps_fmt_clear_btn;
   GtkButton *abcm2ps_fmt_file_btn;
@@ -67,6 +69,10 @@ gabc_prefs_window_init (GabcPrefsWindow *self)
                    self->abcm2ps_fmt_file_action_row, "subtitle",
                    G_SETTINGS_BIND_DEFAULT);
 
+  g_settings_bind (self->settings, "abc2midi-barfly-mode",
+                   self->abc2midi_barfly_mode_combo, "active-id",
+                   G_SETTINGS_BIND_DEFAULT);
+
   //g_assert (GABC_IS_PREFS_WINDOW (self));
   g_signal_connect (self->abcm2ps_fmt_file_btn, "clicked", G_CALLBACK (gabc_prefs_set_fmt_file_path), self);
   g_signal_connect (self->abcm2ps_fmt_clear_btn, "clicked", G_CALLBACK (gabc_prefs_clear_fmt_file_path), self);
@@ -108,7 +114,7 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_fmt_clear_btn);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_fmt_file_btn);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_page_number_combo);
-
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abc2midi_barfly_mode_combo);
 
 }
 
