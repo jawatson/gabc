@@ -34,10 +34,6 @@
         "*.la",
         "*.a"
     ],
-    "cleanup-commands" : [
-  	"strip /bin/abcm2ps",
-  	"strip /bin/anc2midi"
-  	],
     "modules" : [
         {
             "name": "abcm2ps",
@@ -48,9 +44,6 @@
                     "type" : "git",
                     "url": "https://github.com/lewdlime/abcm2ps.git"
                 }
-            ],
-            "build-options": [
-                {"strip": true}
             ]
         },
         {

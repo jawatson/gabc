@@ -23,6 +23,7 @@
 #include "gabc-window.h"
 #include "gabc-log-window.h"
 
+
 struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
@@ -147,8 +148,6 @@ gabc_window_class_init (GabcWindowClass *klass)
 
   widget_class = GTK_WIDGET_CLASS (klass);
 
-  g_type_ensure (GTK_SOURCE_TYPE_VIEW);
-
   gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
 
   gtk_widget_class_bind_template_child (widget_class,
@@ -162,6 +161,8 @@ gabc_window_class_init (GabcWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcWindow,
                                         window_title);
+
+  g_type_ensure (GTK_SOURCE_TYPE_VIEW);
 
 }
 

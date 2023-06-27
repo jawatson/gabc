@@ -1,7 +1,7 @@
 [Desktop Entry]
 Encoding=UTF-8
 Name=Gabc
-GenericName=ABC Editpr
+GenericName=ABC Editor
 Comment=A small application of editing/playing/engraving abc notation.
 Keywords=abc;notation;music
 Exec=gabc

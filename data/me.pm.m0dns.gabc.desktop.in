@@ -1,8 +1,10 @@
 [Desktop Entry]
 Name=gabc
+GenericName=ABC Editor
 Exec=gabc
 Icon=me.pm.m0dns.gabc
 Terminal=false
 Type=Application
-Categories=GTK;
+Categories=AudioVideo;
 StartupNotify=true
+MimeType=application/vnd.abc;
