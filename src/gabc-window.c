@@ -54,8 +54,6 @@ gabc_window_dispose (GObject *object);
 static void
 gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
-//gabc_window_open_drop_action_dialog
-
 static gboolean
 gabc_window_on_drop (GtkDropTarget *target,
          const GValue *value,
@@ -66,7 +64,6 @@ gabc_window_on_drop (GtkDropTarget *target,
 
 static gboolean
 gabc_window_buffer_has_content (GabcWindow *self);
-
 
 static void
 gabc_windows_present_file (GabcWindow *self, GFile *file);
@@ -101,8 +98,8 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
 
 static void
 gabc_window_file_open_cb (GObject      *source_object,
-              GAsyncResult *res,
-              gpointer      data);
+                          GAsyncResult *res,
+                          gpointer      data);
 
 static void
 gabc_window_open_file_cb (GtkSourceFileLoader *loader,
@@ -285,7 +282,6 @@ static void
 gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
   GFile *abc_file;
   GabcWindow *self;
-  g_print ("doing the choose\n");
 
   GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
 
@@ -293,13 +289,9 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
   abc_file = cb_data->file;
   self = cb_data->gabc_window;
   g_assert (GABC_IS_WINDOW (self));
-  g_print ("window / self is ok\n");
   g_assert (G_IS_FILE (abc_file));
-  g_print ("file is ok\n");
 
   GError *error = NULL;
-
-  g_print("got the variables\n");
 
   int button = gtk_alert_dialog_choose_finish (dialog, res, &error);
 
@@ -323,6 +315,9 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
     }
   else
     g_assert_not_reached();
+
+  g_free(cb_data);
+  g_object_unref (dialog);
 }
 
 
@@ -332,14 +327,13 @@ gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
   GtkAlertDialog *dialog;
   g_assert (GABC_IS_WINDOW (self));
   g_assert (G_IS_FILE (file));
-  dialog = gtk_alert_dialog_new ("Append");
+  dialog = gtk_alert_dialog_new ("Open File");
   const char* buttons[] = {"Cancel", "New", "Append", NULL};
   gtk_alert_dialog_set_detail (dialog, "Start a new file for or append to existing tune?");
   gtk_alert_dialog_set_buttons (dialog, buttons);
   gtk_alert_dialog_set_cancel_button (dialog, 0);
   gtk_alert_dialog_set_default_button (dialog, 2);
 
-  g_print ("about to open the dialog\n");
   file_cb_data_t *user_data = g_new0(file_cb_data_t, 1);
   user_data->file = file;
   user_data->gabc_window = self;
@@ -348,12 +342,9 @@ gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
 
 static void
 gabc_windows_present_file (GabcWindow *self, GFile *file) {
-  g_print ("gabc_windows_present_file \n");
   if ( gabc_window_buffer_has_content(self) ) {
-    g_print("we have content\n");
     gabc_window_open_drop_action_dialog (self, file);
   } else {
-    g_print ("buffer is empty\n");
     gabc_window_open_file (self, file);
   }
 }
@@ -488,8 +479,6 @@ gabc_window_file_open_cb (GObject       *file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-    //gabc_window_open_file (self, file);
-    //g_object_unref (file);
     gabc_windows_present_file (self, file);
   }
   g_object_unref (file_dialog);
@@ -511,7 +500,6 @@ gabc_window_set_window_title (GabcWindow *self)
     {
       title = g_file_get_basename (source_file);
       parent_file = g_file_get_parent (source_file);
-      sub_title = g_file_get_path (parent_file);
       home_file = g_file_new_for_path (g_getenv ("HOME"));
       sub_title = g_file_get_relative_path (home_file, parent_file);
       if (sub_title == NULL)
@@ -551,7 +539,6 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
   }
   else
   {
-    // Reposition the cursor so it's at the start of the text
     gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
@@ -565,10 +552,9 @@ void
 gabc_window_open_file (GabcWindow      *self,
                        GFile           *file)
 {
-  g_print ("in the open file\n");
+
   GtkSourceFileLoader *loader;
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
-  g_print("set the path\n");
   loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->buffer),
                                        GTK_SOURCE_FILE (self->abc_source_file));
 
@@ -581,9 +567,9 @@ gabc_window_open_file (GabcWindow      *self,
 
 
 void
-open_append_file_complete  (GObject  *source_object,
-                    GAsyncResult     *result,
-                    GabcWindow       *self)
+open_append_file_cb  (GObject       *source_object,
+                      GAsyncResult  *result,
+                      GabcWindow    *self)
 {
   GFile *file = G_FILE (source_object);
   GtkTextIter end;
@@ -633,10 +619,9 @@ void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,
                                            GFile            *file)
 {
-  g_print ("appending the file");
   g_file_load_contents_async (file,
                               NULL,
-                              (GAsyncReadyCallback) open_append_file_complete,
+                              (GAsyncReadyCallback) open_append_file_cb,
                               self);
 }
 
