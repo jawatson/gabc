@@ -41,8 +41,20 @@ struct _GabcWindow
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
+
+typedef struct {
+  GFile *file;
+  GabcWindow *gabc_window;
+} file_cb_data_t;
+
+
 static void
 gabc_window_dispose (GObject *object);
+
+static void
+gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data);
+
+//gabc_window_open_drop_action_dialog
 
 static gboolean
 gabc_window_on_drop (GtkDropTarget *target,
@@ -50,6 +62,14 @@ gabc_window_on_drop (GtkDropTarget *target,
          double x,
          double y,
          gpointer data);
+
+
+static gboolean
+gabc_window_buffer_has_content (GabcWindow *self);
+
+
+static void
+gabc_windows_present_file (GabcWindow *self, GFile *file);
 
 static void
 gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
@@ -261,6 +281,91 @@ gabc_window_init (GabcWindow *self)
   }
 }
 
+static void
+gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
+  GFile *abc_file;
+  GabcWindow *self;
+  g_print ("doing the choose\n");
+
+  GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
+
+  file_cb_data_t *cb_data = user_data;
+  abc_file = cb_data->file;
+  self = cb_data->gabc_window;
+  g_assert (GABC_IS_WINDOW (self));
+  g_print ("window / self is ok\n");
+  g_assert (G_IS_FILE (abc_file));
+  g_print ("file is ok\n");
+
+  GError *error = NULL;
+
+  g_print("got the variables\n");
+
+  int button = gtk_alert_dialog_choose_finish (dialog, res, &error);
+
+  if (error) {
+    gabc_log_window_append_to_log (self->log_window, error->message);
+    g_clear_error (&error);
+    return;
+  }
+
+  if (button == 0) // Cancel
+    {
+      return;
+    }
+  else if (button == 1) // New
+    {
+      gabc_window_open_file (self, abc_file);
+    }
+  else if (button == 2) // Append
+    {
+      gabc_window_append_file_content_to_buffer (self, abc_file);
+    }
+  else
+    g_assert_not_reached();
+}
+
+
+static void
+gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
+{
+  GtkAlertDialog *dialog;
+  g_assert (GABC_IS_WINDOW (self));
+  g_assert (G_IS_FILE (file));
+  dialog = gtk_alert_dialog_new ("Append");
+  const char* buttons[] = {"Cancel", "New", "Append", NULL};
+  gtk_alert_dialog_set_detail (dialog, "Start a new file for or append to existing tune?");
+  gtk_alert_dialog_set_buttons (dialog, buttons);
+  gtk_alert_dialog_set_cancel_button (dialog, 0);
+  gtk_alert_dialog_set_default_button (dialog, 2);
+
+  g_print ("about to open the dialog\n");
+  file_cb_data_t *user_data = g_new0(file_cb_data_t, 1);
+  user_data->file = file;
+  user_data->gabc_window = self;
+  gtk_alert_dialog_choose (dialog, GTK_WINDOW (self), NULL, gabc_window_on_drop_choose, user_data);
+}
+
+static void
+gabc_windows_present_file (GabcWindow *self, GFile *file) {
+  g_print ("gabc_windows_present_file \n");
+  if ( gabc_window_buffer_has_content(self) ) {
+    g_print("we have content\n");
+    gabc_window_open_drop_action_dialog (self, file);
+  } else {
+    g_print ("buffer is empty\n");
+    gabc_window_open_file (self, file);
+  }
+}
+
+static gboolean
+gabc_window_buffer_has_content (GabcWindow *self) {
+  GtkTextIter start;
+  GtkTextIter end;
+  gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER (self->buffer), &start, &end);
+  return !gtk_text_iter_equal (&start, &end);
+}
+
 
 static gboolean
 gabc_window_on_drop (GtkDropTarget *target,
@@ -271,18 +376,21 @@ gabc_window_on_drop (GtkDropTarget *target,
 {
   GdkFileList *file_list;
   GSList *list;
-  GFile* file;
+  GFile *file;
 
   GabcWindow *self = data;
+
+  g_assert (GABC_IS_WINDOW (self));
 
   file_list = g_value_get_boxed (value);
 
   list = gdk_file_list_get_files (file_list);
 
   file = g_slist_nth_data (list, 0);
+  g_assert (G_IS_FILE (file));
+  g_object_ref(file);
 
-  gabc_window_open_file (self, file);
-
+  gabc_windows_present_file(self, file);
   g_slist_free (list);
 
   return TRUE;
@@ -380,8 +488,9 @@ gabc_window_file_open_cb (GObject       *file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-    gabc_window_open_file (self, file);
-    g_object_unref (file);
+    //gabc_window_open_file (self, file);
+    //g_object_unref (file);
+    gabc_windows_present_file (self, file);
   }
   g_object_unref (file_dialog);
 }
@@ -453,11 +562,13 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
 
 
 void
-gabc_window_open_file (GabcWindow       *self,
-                      GFile            *file)
+gabc_window_open_file (GabcWindow      *self,
+                       GFile           *file)
 {
+  g_print ("in the open file\n");
   GtkSourceFileLoader *loader;
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
+  g_print("set the path\n");
   loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->buffer),
                                        GTK_SOURCE_FILE (self->abc_source_file));
 
@@ -468,6 +579,66 @@ gabc_window_open_file (GabcWindow       *self,
                                      self);
 }
 
+
+void
+open_append_file_complete  (GObject  *source_object,
+                    GAsyncResult     *result,
+                    GabcWindow       *self)
+{
+  GFile *file = G_FILE (source_object);
+  GtkTextIter end;
+
+  g_autofree char *contents = NULL;
+  gsize length = 0;
+
+  g_autoptr (GError) error = NULL;
+
+  g_file_load_contents_finish (file,
+                               result,
+                               &contents,
+                               &length,
+                               NULL,
+                               &error);
+
+  if (error != NULL)
+    {
+      gabc_log_window_append_to_log (self->log_window, error->message);
+      g_clear_error (&error);
+      return;
+    }
+
+  if (!g_utf8_validate (contents, length, NULL))
+    {
+      gchar *err_msg = g_strdup_printf ("Unable to load the contents of %s.  File is not encoded with UTF-8\n", g_file_peek_path (file));
+      gabc_log_window_append_to_log (self->log_window, err_msg);
+      g_free (err_msg);
+      return;
+    }
+
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
+
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->buffer), &end, "\n\n", -1);
+
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
+
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->buffer),
+                         &end,
+                         contents,
+                         -1);
+  g_object_unref (file);
+}
+
+
+void
+gabc_window_append_file_content_to_buffer (GabcWindow       *self,
+                                           GFile            *file)
+{
+  g_print ("appending the file");
+  g_file_load_contents_async (file,
+                              NULL,
+                              (GAsyncReadyCallback) open_append_file_complete,
+                              self);
+}
 
 
 static void
@@ -585,7 +756,6 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
        gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
        g_object_unref (alert_dialog);
     }
-
 
   g_free (abc_file_path);
   g_free (ps_file_path);

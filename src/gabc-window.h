@@ -36,9 +36,11 @@ gabc_window_new (GabcApplication *app);
 
 void
 gabc_window_open_file (GabcWindow       *self,
-           GFile            *file);
+                       GFile            *file);
 
-
+void
+gabc_window_append_file_content_to_buffer (GabcWindow       *self,
+                                           GFile            *file);
 
 
 G_END_DECLS
