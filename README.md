@@ -19,6 +19,10 @@ formatting for flute or whistle ornaments may use this parameter to specify the
 location of of a local copy of the file 
 [larsen.fmt](https://github.com/jawatson/abc-larsen/blob/master/larsen.fmt).
 - Page numbering specifies the use and placement of page numbers in the rendered output. 
+- 'Barfly Stress Model. abc2midi supports a couple of 'stress models' for stressing  notes 
+when playing the file.  Detail of how the stress model works may be found [https://abcmidi.sourceforge.io/#stressmodel](here).
+Note: In order for the stress model to work, the 'R:' (rhythm) parameter must be specified.
+
 
 ## Credits
 
