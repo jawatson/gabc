@@ -21,7 +21,7 @@ location of of a local copy of the file
 [larsen.fmt](https://github.com/jawatson/abc-larsen/blob/master/larsen.fmt).
 - Page numbering specifies the use and placement of page numbers in the rendered output. 
 
-###abc2midi
+### abc2midi
 - 'Barfly Stress Model. abc2midi supports a couple of 'stress models' for stressing  notes 
 when playing the file.  Detail of how the stress model works may be found [here](https://abcmidi.sourceforge.io/#stressmodel).
 Note: In order for the stress model to work, the 'R:' (rhythm) parameter must be specified.
