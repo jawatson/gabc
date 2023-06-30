@@ -151,9 +151,27 @@
               </object>
             </child>
 
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Instrument</property>
+                <property name="activatable_widget">abc2midi_midi_program_combo</property>
 
-
-
+                <child>
+                  <object class="GtkComboBoxText" id="abc2midi_midi_program_combo">
+                    <property name="active">1</property>
+                    <items>
+                      <item translatable="yes" id="DEFAULT">Default</item>
+                      <item translatable="yes" id="MIDI_PIANO">Piano</item>
+                      <item translatable="yes" id="MIDI_ACCORDION">Accordion</item>
+                      <item translatable="yes" id="MIDI_GUITAR">Guitar</item>
+                      <item translatable="yes" id="MIDI_VIOLIN">Violin</item>
+                      <item translatable="yes" id="MIDI_FLUTE">Flute</item>
+                      <item translatable="yes" id="MIDI_BANJO">Banjo</item>
+                    </items>
+                  </object>
+                </child>
+              </object>
+            </child>
 
           </object>
         </child>

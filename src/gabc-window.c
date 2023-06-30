@@ -771,6 +771,35 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
   g_free (midi_file_path);
 }
 
+static gchar *
+gabc_window_set_midi_program (gchar * file_content, gint midi_program)
+{
+  gchar *preprocessed_text;
+  GError *error = NULL;
+  GRegex *end_of_header_regex;
+  gchar *program_str = g_strdup_printf ("\\0\\n%%%%MIDI program %d", midi_program);
+
+  end_of_header_regex = g_regex_new ("^K:.*$", G_REGEX_MULTILINE, 0, &error);
+
+  if ( error )
+  {
+    //gabc_log_window_append_to_log (self->log_window, error->message);
+    g_print("Error: %s\n", error->message);
+    g_clear_error (&error);
+  }
+
+  preprocessed_text = g_regex_replace (end_of_header_regex,
+                          file_content,
+                          -1,
+                          0,
+                          program_str,
+                          G_REGEX_MATCH_DEFAULT,
+                          NULL);
+  g_free (program_str);
+  g_regex_unref (end_of_header_regex);
+  return preprocessed_text;
+}
+
 
 gchar *
 gabc_window_write_buffer_to_file (GabcWindow *self)
@@ -779,6 +808,7 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   GtkTextIter end;
   char *text;
   gchar *file_path;
+  gint midi_program;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
@@ -787,8 +817,21 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
+  // Preprocess the file here
+  midi_program = g_settings_get_enum (self->settings, "abc2midi-midi-program");
+  if (midi_program < 128)
+    {
+    text = gabc_window_set_midi_program (text, midi_program);
+    }
+  //gint program_number = -1; // read this from settings
+  // regex to find each "^K:[a-z, A-Z]+$"
+  //
+  // Insert a line below
+
   file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
+
+
 
   g_free (text);
   return file_path;

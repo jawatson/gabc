@@ -6,6 +6,16 @@
     <value nick="STRESS_MODEL_2" value="2"/>
   </enum>
 
+  <enum id="me.pm.m0dns.gabc.midiprogram">
+    <value nick="DEFAULT" value="128"/>
+    <value nick="MIDI_PIANO" value="0"/>
+    <value nick="MIDI_ACCORDION" value="21"/>
+    <value nick="MIDI_GUITAR" value="25"/>
+    <value nick="MIDI_VIOLIN" value="40"/>
+    <value nick="MIDI_FLUTE" value="73"/>
+    <value nick="MIDI_BANJO" value="105"/>
+  </enum>
+
   <schema path="/me/pm/m0dns/gabc/" id="me.pm.m0dns.gabc">
 
     <key name="dark-theme" type="b">
@@ -48,6 +58,10 @@
       <summary>Barfly mode.</summary>
     </key>
     -->
+    <key name='abc2midi-midi-program' enum='me.pm.m0dns.gabc.midiprogram'>
+      <default>'DEFAULT'</default>
+    </key>
+
     <key name='abc2midi-barfly-mode' enum='me.pm.m0dns.gabc.bfmodes'>
       <default>'OFF'</default>
     </key>
