@@ -9,8 +9,9 @@ as engraved music notation or as playable midi files.
 
 ## Preferences
 
-A few preferences, related to abcm2ps are supported;
+A few preferences, related to abcm2ps and abc2midi are supported;
 
+### abcm2ps
 - Show errors.  If enabled will indicate problems with the input file with
 a red circle in the engraved output.
 - FMT File Path. This specifies the path to a .fmt file that should be searched 
@@ -19,6 +20,8 @@ formatting for flute or whistle ornaments may use this parameter to specify the
 location of of a local copy of the file 
 [larsen.fmt](https://github.com/jawatson/abc-larsen/blob/master/larsen.fmt).
 - Page numbering specifies the use and placement of page numbers in the rendered output. 
+
+###abc2midi
 - 'Barfly Stress Model. abc2midi supports a couple of 'stress models' for stressing  notes 
 when playing the file.  Detail of how the stress model works may be found [here](https://abcmidi.sourceforge.io/#stressmodel).
 Note: In order for the stress model to work, the 'R:' (rhythm) parameter must be specified.
