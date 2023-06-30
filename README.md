@@ -20,14 +20,28 @@ location of of a local copy of the file
 [larsen.fmt](https://github.com/jawatson/abc-larsen/blob/master/larsen.fmt).
 - Page numbering specifies the use and placement of page numbers in the rendered output. 
 - 'Barfly Stress Model. abc2midi supports a couple of 'stress models' for stressing  notes 
-when playing the file.  Detail of how the stress model works may be found [https://abcmidi.sourceforge.io/#stressmodel](here).
+when playing the file.  Detail of how the stress model works may be found [here](https://abcmidi.sourceforge.io/#stressmodel).
 Note: In order for the stress model to work, the 'R:' (rhythm) parameter must be specified.
+
+## Embedded MIDI commands
+Conversion to midi is performed by abc2midi which supports a number of embedded commands.  
+Details of these commands may be found in the [Online documentation](https://abcmidi.sourceforge.io/#top).
+
+The program parameter may be used to control the voice of the rendered midi.  Voices of interest to the traditional musician include;
+
+    %%MIDI program 21 # Accordion
+    %%MIDI program 40 # Violin
+    %%MIDI program 73 # Flute
+
+The above commands should be inserted between the header and music.  For the full list of 128 
+available voices, refer to the [online documentation](https://abcmidi.sourceforge.io/#channels)
+
 
 
 ## Credits
 
 ### abcm2ps 
-File engraving is performed by the [abcm2ps](https://github.com/lewdlime/abcm2ps) 
+File engraving is performed by [abcm2ps](https://github.com/lewdlime/abcm2ps) 
 
 ### abc2midi
 Conversion from abc to midi is performed using the 
