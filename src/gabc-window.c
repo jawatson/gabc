@@ -282,6 +282,9 @@ static void
 gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
   GFile *abc_file;
   GabcWindow *self;
+  GError *error;
+  int button;
+
 
   GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
 
@@ -291,9 +294,9 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
   g_assert (GABC_IS_WINDOW (self));
   g_assert (G_IS_FILE (abc_file));
 
-  GError *error = NULL;
 
-  int button = gtk_alert_dialog_choose_finish (dialog, res, &error);
+  error = NULL;
+  button = gtk_alert_dialog_choose_finish (dialog, res, &error);
 
   if (error) {
     gabc_log_window_append_to_log (self->log_window, error->message);
@@ -325,16 +328,20 @@ static void
 gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
 {
   GtkAlertDialog *dialog;
+  file_cb_data_t *user_data;
+  const char* buttons[] = {"Cancel", "New", "Append", NULL};
   g_assert (GABC_IS_WINDOW (self));
   g_assert (G_IS_FILE (file));
   dialog = gtk_alert_dialog_new ("Open File");
-  const char* buttons[] = {"Cancel", "New", "Append", NULL};
+
+
+
   gtk_alert_dialog_set_detail (dialog, "Start a new file for or append to existing tune?");
   gtk_alert_dialog_set_buttons (dialog, buttons);
   gtk_alert_dialog_set_cancel_button (dialog, 0);
   gtk_alert_dialog_set_default_button (dialog, 2);
 
-  file_cb_data_t *user_data = g_new0(file_cb_data_t, 1);
+  user_data = g_new0(file_cb_data_t, 1);
   user_data->file = file;
   user_data->gabc_window = self;
   gtk_alert_dialog_choose (dialog, GTK_WINDOW (self), NULL, gabc_window_on_drop_choose, user_data);
@@ -566,7 +573,7 @@ gabc_window_open_file (GabcWindow      *self,
 }
 
 
-void
+static void
 open_append_file_cb  (GObject       *source_object,
                       GAsyncResult  *result,
                       GabcWindow    *self)
