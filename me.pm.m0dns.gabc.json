@@ -1,7 +1,7 @@
 {
     "app-id" : "me.pm.m0dns.gabc",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "44",
+    "runtime-version" : "45",
     "sdk" : "org.gnome.Sdk",
     "command" : "gabc",
     "finish-args" : [
@@ -44,7 +44,10 @@
                     "type" : "git",
                     "url": "https://github.com/lewdlime/abcm2ps.git"
                 }
-            ]
+            ],
+            "cleanup": [ "/share/man",
+            	"/share/doc",
+            	"/lib/debug"]
         },
         {
             "name": "abcmidi",
@@ -55,7 +58,11 @@
                     "type" : "git",
                     "url": "https://github.com/sshlien/abcmidi.git"
                 }
-            ]
+            ],
+            "cleanup": [ "source/abcmidi/queues.h",
+            	"/share/man",
+            	"/share/doc",
+            	"/lib/debug"]
         },
         {
             "name" : "gabc",
