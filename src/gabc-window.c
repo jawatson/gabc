@@ -43,7 +43,7 @@ G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 
 typedef struct {
-  GFile *file;
+  GFile *abc_file;
   GabcWindow *gabc_window;
 } file_cb_data_t;
 
@@ -284,16 +284,17 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
   GabcWindow *self;
   GError *error;
   int button;
+  g_print ("got to here.");
 
 
   GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
 
   file_cb_data_t *cb_data = user_data;
-  abc_file = cb_data->file;
+  abc_file = (GFile *) cb_data->abc_file;
+
   self = cb_data->gabc_window;
   g_assert (GABC_IS_WINDOW (self));
   g_assert (G_IS_FILE (abc_file));
-
 
   error = NULL;
   button = gtk_alert_dialog_choose_finish (dialog, res, &error);
@@ -325,16 +326,14 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
 
 
 static void
-gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
+gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *abc_file)
 {
   GtkAlertDialog *dialog;
   file_cb_data_t *user_data;
   const char* buttons[] = {"Cancel", "New", "Append", NULL};
   g_assert (GABC_IS_WINDOW (self));
-  g_assert (G_IS_FILE (file));
+  g_assert (G_IS_FILE (abc_file));
   dialog = gtk_alert_dialog_new ("Open File");
-
-
 
   gtk_alert_dialog_set_detail (dialog, "Start a new file for or append to existing tune?");
   gtk_alert_dialog_set_buttons (dialog, buttons);
@@ -342,7 +341,7 @@ gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *file)
   gtk_alert_dialog_set_default_button (dialog, 2);
 
   user_data = g_new0(file_cb_data_t, 1);
-  user_data->file = file;
+  user_data->abc_file = abc_file;
   user_data->gabc_window = self;
   gtk_alert_dialog_choose (dialog, GTK_WINDOW (self), NULL, gabc_window_on_drop_choose, user_data);
 }
@@ -487,6 +486,7 @@ gabc_window_file_open_cb (GObject       *file_dialog,
                                                         NULL);
   if (file) {
     gabc_windows_present_file (self, file);
+    g_object_ref (file);  // Hang on to the file object for now.
   }
   g_object_unref (file_dialog);
 }
