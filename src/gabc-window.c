@@ -284,12 +284,12 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
   GabcWindow *self;
   GError *error;
   int button;
-  g_print ("got to here.");
+  GtkAlertDialog *dialog;
+  file_cb_data_t *cb_data;
 
+  dialog = GTK_ALERT_DIALOG (source_object);
 
-  GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
-
-  file_cb_data_t *cb_data = user_data;
+  cb_data = user_data;
   abc_file = (GFile *) cb_data->abc_file;
 
   self = cb_data->gabc_window;
