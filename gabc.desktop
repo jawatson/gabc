@@ -8,4 +8,4 @@ Exec=gabc
 Terminal=false
 Type=Application
 Categories=AudioVideo;
-MimeType=application/vnd.abc;
+MimeType=text/vnd.abc;
