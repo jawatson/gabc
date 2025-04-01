@@ -45,7 +45,7 @@ static void
 gabc_prefs_set_fmt_file_path (GtkWidget *widget,
                                 gpointer   user_data);
 
-G_DEFINE_TYPE (GabcPrefsWindow, gabc_prefs_window, ADW_TYPE_PREFERENCES_WINDOW)
+G_DEFINE_TYPE (GabcPrefsWindow, gabc_prefs_window, ADW_TYPE_PREFERENCES_DIALOG)
 
 
 static void
