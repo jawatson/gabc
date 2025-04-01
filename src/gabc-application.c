@@ -75,13 +75,13 @@ gabc_application_about_action (GSimpleAction *action,
 {
 	static const char *developers[] = {"James Watson", NULL};
 	GabcApplication *self = user_data;
-	GtkWindow *window = NULL;
+	GtkWidget *parent = NULL;
 
 	g_assert (GABC_IS_APPLICATION (self));
 
-	window = gtk_application_get_active_window (GTK_APPLICATION (self));
+	parent = (GtkWidget *) gtk_application_get_active_window (GTK_APPLICATION (self));
 
-	adw_show_about_window (window,
+	adw_show_about_dialog (parent,
 	                       "application-name", "gabc",
 	                       "application-icon", "me.pm.m0dns.gabc",
 	                       "developer-name", "James Watson",
