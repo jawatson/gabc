@@ -69,6 +69,21 @@
             ]
         },
         {
+            "name": "timidity",
+            "buildsystem": "autotools",
+            "no-autogen": false,
+            "config-opts": ["--enable-audio=no"],
+            "sources": [
+                {
+                    "type" : "git",
+                    "url": "https://git.code.sf.net/p/timidity/git"
+                }
+            ],
+            "cleanup": [ "/share/man",
+            	"/share/doc",
+            	"/lib/debug"]
+        },
+        {
             "name" : "gabc",
             "builddir" : true,
             "buildsystem" : "meson",
