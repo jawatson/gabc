@@ -1,7 +1,7 @@
 {
     "app-id" : "me.pm.m0dns.gabc",
     "runtime" : "org.gnome.Platform",
-    "runtime-version" : "46",
+    "runtime-version" : "47",
     "sdk" : "org.gnome.Sdk",
     "command" : "gabc",
     "finish-args" : [
@@ -13,13 +13,13 @@
         "--filesystem=home"
     ],
     "cleanup" : [
-    	"/bin/abc2abc",
-    	"/bin/abcmatch",
-    	"/bin/mftext",
-    	"/bin/midi2abc",
-    	"/bin/midicopy",
-    	"/bin/midistats",
-    	"/bin/yaps",
+        "/bin/abc2abc",
+        "/bin/abcmatch",
+        "/bin/mftext",
+        "/bin/midi2abc",
+        "/bin/midicopy",
+        "/bin/midistats",
+        "/bin/yaps",
         "/include",
         "/lib/pkgconfig",
         "/lib/debug/source/abcm2ps",
@@ -36,33 +36,37 @@
     ],
     "modules" : [
         {
-            "name": "abcm2ps",
-            "buildsystem": "autotools",
-            "no-autogen": true,
-            "sources": [
+            "name" : "abcm2ps",
+            "buildsystem" : "autotools",
+            "no-autogen" : true,
+            "sources" : [
                 {
                     "type" : "git",
-                    "url": "https://github.com/lewdlime/abcm2ps.git"
+                    "url" : "https://github.com/lewdlime/abcm2ps.git"
                 }
             ],
-            "cleanup": [ "/share/man",
-            	"/share/doc",
-            	"/lib/debug"]
+            "cleanup" : [
+                "/share/man",
+                "/share/doc",
+                "/lib/debug"
+            ]
         },
         {
-            "name": "abcmidi",
-            "buildsystem": "autotools",
-            "no-autogen": true,
-            "sources": [
+            "name" : "abcmidi",
+            "buildsystem" : "autotools",
+            "no-autogen" : true,
+            "sources" : [
                 {
                     "type" : "git",
-                    "url": "https://github.com/sshlien/abcmidi.git"
+                    "url" : "https://github.com/sshlien/abcmidi.git"
                 }
             ],
-            "cleanup": [ "source/abcmidi/queues.h",
-            	"/share/man",
-            	"/share/doc",
-            	"/lib/debug"]
+            "cleanup" : [
+                "source/abcmidi/queues.h",
+                "/share/man",
+                "/share/doc",
+                "/lib/debug"
+            ]
         },
         {
             "name" : "gabc",
@@ -73,7 +77,13 @@
                     "type" : "git",
                     "url" : "file:///home/jwatson/Projects"
                 }
+            ],
+            "config-opts" : [
+                "--libdir=lib"
             ]
         }
-    ]
+    ],
+    "build-options" : {
+        "env" : {        }
+    }
 }
