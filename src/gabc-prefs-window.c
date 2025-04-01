@@ -121,13 +121,13 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_page_number_combo);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abc2midi_barfly_mode_combo);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abc2midi_midi_program_combo);
-
 }
 
+
 GabcPrefsWindow *
-gabc_prefs_window_new (GabcWindow *win)
+gabc_prefs_window_new (GabcWindow *parent)
 {
-  return g_object_new (GABC_PREFS_WINDOW_TYPE, "transient-for", win, NULL);
+  return g_object_new (GABC_PREFS_WINDOW_TYPE, NULL);
 }
 
 
@@ -136,7 +136,7 @@ gabc_prefs_clear_fmt_file_path (GtkWidget *widget,
                                 gpointer   user_data)
 {
   GabcPrefsWindow *self = GABC_PREFS_WINDOW (user_data);
-  g_assert (GABC_IS_PREFS_WINDOW (self));
+  //g_assert (GABC_IS_PREFS_WINDOW (self));
   g_settings_set_string (self->settings, "abcm2ps-fmt-file-path", "");
 }
 
@@ -145,7 +145,7 @@ gabc_prefs_set_fmt_file_path (GtkWidget *widget,
                                 gpointer   user_data)
 {
   GabcPrefsWindow *self = GABC_PREFS_WINDOW (user_data);
-  g_assert (GABC_IS_PREFS_WINDOW (self));
+  //g_assert (GABC_IS_PREFS_WINDOW (self));
   g_print ("setting the path\n");
   gabc_prefs_window_select_fmt_file (self);
 }

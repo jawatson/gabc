@@ -118,7 +118,7 @@ gabc_application_preferences_action (GSimpleAction *action,
 
   window = gtk_application_get_active_window (GTK_APPLICATION (self));
   prefs = gabc_prefs_window_new (GABC_WINDOW (window));
-  gtk_window_present (GTK_WINDOW (prefs));
+  adw_dialog_present (ADW_DIALOG(prefs), GTK_WIDGET (window));
 }
 
 
