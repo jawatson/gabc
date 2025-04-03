@@ -107,6 +107,11 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
               GabcWindow          *self);
 
 static void
+gabc_window_export_midi_handler (GSimpleAction *action G_GNUC_UNUSED,
+                               GVariant      *parameter G_GNUC_UNUSED,
+                               gpointer       user_data);
+
+static void
 gabc_window_set_window_title (GabcWindow *self);
 
 static void
@@ -190,6 +195,7 @@ static const GActionEntry win_actions[] = {
     { "engrave", gabc_window_engrave_file},
     { "save", gabc_window_save_file_handler},
     { "save_as", gabc_window_save_file_dialog},
+    { "export_midi", gabc_window_export_midi_handler},
     { "open", gabc_window_open_file_dialog},
     { "new", gabc_window_clear_buffer}
 };
@@ -725,6 +731,15 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
     g_clear_error (&error);
   }
   g_object_unref (saver);
+}
+
+static void
+gabc_window_export_midi_handler (GSimpleAction *action G_GNUC_UNUSED,
+                               GVariant      *parameter G_GNUC_UNUSED,
+                               gpointer       user_data)
+{
+  GabcWindow *self = user_data;
+  g_print ("export the midi file");
 }
 
 

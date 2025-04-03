@@ -97,6 +97,12 @@
     </section>
     <section>
       <item>
+        <attribute name="label" translatable="yes">Export MIDI</attribute>
+        <attribute name="action">win.export_midi</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
         <attribute name="label" translatable="yes">Log</attribute>
         <attribute name="action">win.open-log</attribute>
       </item>
