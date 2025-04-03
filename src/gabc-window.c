@@ -136,8 +136,8 @@ gabc_window_write_buffer_to_file (GabcWindow  *self);
 gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self);
 
-static gchar *
-gabc_window_write_midi_file (gchar *file_path, GabcWindow *self);
+static gint
+gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self);
 
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self);
@@ -775,10 +775,13 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
                         gpointer       user_data)
 {
   gchar *abc_file_path, *midi_file_path;
+  gint rc = 0;
   GabcWindow *self = user_data;
   abc_file_path = gabc_window_write_buffer_to_file (self);
-  midi_file_path = gabc_window_write_midi_file (abc_file_path, self);
-  if ((midi_file_path != NULL) && (midi_file_path[0] != '\0'))
+
+  midi_file_path = gabc_window_set_file_extension (abc_file_path, (gchar*)("mid"));
+  rc = gabc_window_write_midi_file (abc_file_path, midi_file_path, self);
+  if ( rc == 0)
     {
        gabc_window_play_media_file (midi_file_path, self);
     }
@@ -981,8 +984,8 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 }
 
 
-static gchar *
-gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
+static gint
+gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self)
 {
   gchar *standard_output;
   gchar *standard_error;
@@ -992,20 +995,20 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 
   gchar *abc_basename;
   gchar *midi_basename;
-  gchar *midi_file_path;
 
-  GFile *path_file;
+  GFile *abc_file;
   GFile *midi_file;
 
   gint barfly_mode;
 
-  gint idx;
+  gint idx, return_code;
   gchar *cmd[10];
   gchar *error_msg = NULL;
 
-  path_file = g_file_new_for_path(file_path);
-  abc_basename = g_file_get_basename (path_file);
-  midi_file_path = gabc_window_set_file_extension (file_path, (gchar*)("mid"));
+  return_code = 0;
+  abc_file = g_file_new_for_path(abc_file_path);
+  abc_basename = g_file_get_basename (abc_file);
+  //midi_file_path = gabc_window_set_file_extension (file_path, (gchar*)("mid"));
   midi_file = g_file_new_for_path(midi_file_path);
   midi_basename = g_file_get_basename (midi_file);
 
@@ -1050,17 +1053,17 @@ gabc_window_write_midi_file (gchar *file_path, GabcWindow *self)
 
   if (error_msg  || result == FALSE)
     {
-      midi_file_path = g_strdup ("");
+      return_code = 1;
     }
 
-  g_object_unref (path_file);
+  g_object_unref (abc_file);
   g_object_unref (midi_file);
   g_free (standard_output);
   g_free (standard_error);
   g_free (abc_basename);
   g_free (midi_basename);
 
-  return midi_file_path;
+  return return_code;
 }
 
 
