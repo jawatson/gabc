@@ -538,16 +538,17 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
       }
     else
       {
-        g_snprintf (dialog_str_buf, dialog_str_buf_len, "OK writing midi file: %s", g_file_get_basename (midi_file) );
+        g_snprintf (dialog_str_buf, dialog_str_buf_len, "Written midi file: %s", g_file_get_basename (midi_file) );
       }
 
     alert_dialog = gtk_alert_dialog_new ("%s", dialog_str_buf);
     gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
-    g_object_unref (alert_dialog);
-  }
 
-  g_free (abc_file_path);
-  g_free (midi_file_path);
+    g_object_unref (alert_dialog);
+    g_free (abc_file_path);
+    g_free (midi_file_path);
+  }
+  //g_object_unref (dialog_str_buf);
   g_object_unref (file_dialog);
 }
 
