@@ -518,6 +518,7 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
   GabcWindow *self = user_data;
   char *midi_file_path;
   char *abc_file_path;
+  GtkAlertDialog *alert_dialog;
   gint rc;
 
   const gint dialog_str_buf_len = 50;
@@ -540,15 +541,13 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
         g_snprintf (dialog_str_buf, dialog_str_buf_len, "OK writing midi file: %s", g_file_get_basename (midi_file) );
       }
 
-    GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("%s",dialog_str_buf);
+    alert_dialog = gtk_alert_dialog_new ("%s", dialog_str_buf);
     gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
     g_object_unref (alert_dialog);
-
-    //g_free (dialog_str_buf);
-    g_free (abc_file_path);
-    g_free (midi_file_path);
   }
 
+  g_free (abc_file_path);
+  g_free (midi_file_path);
   g_object_unref (file_dialog);
 }
 
@@ -1092,7 +1091,6 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   gboolean result;
 
   gchar *abc_basename;
-  gchar *midi_basename;
 
   GFile *abc_file;
   //GFile *midi_file;
