@@ -103,13 +103,26 @@ gabc_window_file_open_cb (GObject      *source_object,
 
 static void
 gabc_window_open_file_cb (GtkSourceFileLoader *loader,
-              GAsyncResult        *result,
-              GabcWindow          *self);
+                          GAsyncResult        *result,
+                          GabcWindow          *self);
 
+/* MIDI Export prototypes */
 static void
 gabc_window_export_midi_handler (GSimpleAction *action G_GNUC_UNUSED,
                                GVariant      *parameter G_GNUC_UNUSED,
                                gpointer       user_data);
+
+
+static void
+gabc_window_save_midi_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data);
+
+static void
+gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       user_data);
+
 
 static void
 gabc_window_set_window_title (GabcWindow *self);
@@ -151,8 +164,11 @@ gabc_window_open_log_dialog (GSimpleAction *action,
 GtkFileFilter *
 gabc_window_get_abc_file_filter (void);
 
+GtkFileFilter *
+gabc_window_get_midi_file_filter (void);
+
 GListStore *
-gabc_window_get_abc_filter_list (GtkFileFilter *abc_filter);
+gabc_window_get_filter_list (GtkFileFilter *abc_filter);
 
 gchar *
 gabc_window_set_file_extension (gchar *file_path, gchar *extension);
@@ -280,7 +296,8 @@ gabc_window_init (GabcWindow *self)
   }
   else
   {
-    gtk_source_buffer_set_language (self->buffer, language);
+    //TODO Why does the following line cause so many warnings?
+    //gtk_source_buffer_set_language (self->buffer, language);
   }
 }
 
@@ -442,13 +459,87 @@ gabc_window_get_abc_file_filter (void)
   return abc_filter;
 }
 
+GtkFileFilter *
+gabc_window_get_midi_file_filter (void)
+{
+  GtkFileFilter *midi_filter = gtk_file_filter_new();
+  gtk_file_filter_add_pattern(midi_filter, "*.mid");
+  gtk_file_filter_add_pattern(midi_filter, "*.midi");
+  return midi_filter;
+}
+
+
 
 GListStore *
-gabc_window_get_abc_filter_list (GtkFileFilter *abc_filter)
+gabc_window_get_filter_list (GtkFileFilter *filter)
 {
   GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
-  g_list_store_append (filter_list, G_OBJECT (abc_filter));
+  g_list_store_append (filter_list, G_OBJECT (filter));
   return filter_list;
+}
+
+
+static void
+gabc_window_save_midi_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
+                              GVariant      *parameter G_GNUC_UNUSED,
+                              gpointer       user_data)
+{
+  GtkFileDialog *gfd;
+  GtkFileFilter *midi_filter;
+  GListStore *filter_list;
+
+  GabcWindow *self = user_data;
+
+  gfd = gtk_file_dialog_new ();
+  gtk_file_dialog_set_title (gfd, "Export MIDI File");
+
+  midi_filter = gabc_window_get_midi_file_filter();
+  filter_list = gabc_window_get_filter_list(midi_filter);
+
+  gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
+  gtk_file_dialog_set_default_filter (gfd, midi_filter);
+
+  gtk_file_dialog_save (gfd,
+                        GTK_WINDOW (self),
+                        NULL,
+                        gabc_window_save_midi_file_dialog_cb,
+                        G_OBJECT (self));
+  g_object_unref (midi_filter);
+  g_object_unref (filter_list);
+}
+
+
+static void
+gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       user_data)
+{
+  GabcWindow *self = user_data;
+  char *midi_file_path;
+  char *abc_file_path;
+  gint rc;
+
+  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+                                                        res,
+                                                        NULL);
+  if (file) {
+    g_print ("do the midi file export\n");
+    midi_file_path = g_file_get_path(file);
+    g_print("%s\n", midi_file_path);
+    abc_file_path = gabc_window_write_buffer_to_file (self);
+
+    rc = gabc_window_write_midi_file (abc_file_path, midi_file_path, self);
+    if ( rc != 0)
+      {
+         GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error writing midi file");
+         gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
+         g_object_unref (alert_dialog);
+      }
+    g_free (abc_file_path);
+    g_free (midi_file_path);
+  }
+
+  g_object_unref (file_dialog);
 }
 
 
@@ -466,7 +557,7 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gtk_file_dialog_set_title ( gfd, "Open abc File");
 
   abc_filter = gabc_window_get_abc_file_filter();
-  filter_list = gabc_window_get_abc_filter_list(abc_filter);
+  filter_list = gabc_window_get_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -671,7 +762,7 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gtk_file_dialog_set_title (gfd, "Save abc File");
 
   abc_filter = gabc_window_get_abc_file_filter();
-  filter_list = gabc_window_get_abc_filter_list(abc_filter);
+  filter_list = gabc_window_get_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -740,6 +831,7 @@ gabc_window_export_midi_handler (GSimpleAction *action G_GNUC_UNUSED,
 {
   GabcWindow *self = user_data;
   g_print ("export the midi file");
+  gabc_window_save_midi_file_dialog (NULL, NULL, self);
 }
 
 
@@ -855,8 +947,6 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
 
   file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
-
-
 
   g_free (text);
   return file_path;
@@ -997,7 +1087,7 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   gchar *midi_basename;
 
   GFile *abc_file;
-  GFile *midi_file;
+  //GFile *midi_file;
 
   gint barfly_mode;
 
@@ -1006,11 +1096,12 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   gchar *error_msg = NULL;
 
   return_code = 0;
+
+  g_print ("Doing the midi write: %s \n", midi_file_path);
   abc_file = g_file_new_for_path(abc_file_path);
   abc_basename = g_file_get_basename (abc_file);
-  //midi_file_path = gabc_window_set_file_extension (file_path, (gchar*)("mid"));
-  midi_file = g_file_new_for_path(midi_file_path);
-  midi_basename = g_file_get_basename (midi_file);
+  //midi_file = g_file_new_for_path(midi_file_path);
+  //midi_basename = g_file_get_basename (midi_file);
 
   barfly_mode = g_settings_get_enum (self->settings, "abc2midi-barfly-mode");
 
@@ -1019,7 +1110,7 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   cmd[idx++] = abc_basename;
 
   cmd[idx++] = (gchar *)("-o");
-  cmd[idx++] = midi_basename;
+  cmd[idx++] = midi_file_path;
 
 
   if ( barfly_mode == 1 )
@@ -1057,11 +1148,11 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
     }
 
   g_object_unref (abc_file);
-  g_object_unref (midi_file);
+  //g_object_unref (midi_file);
   g_free (standard_output);
   g_free (standard_error);
   g_free (abc_basename);
-  g_free (midi_basename);
+  //g_free (midi_basename);
 
   return return_code;
 }
