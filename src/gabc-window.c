@@ -297,7 +297,7 @@ gabc_window_init (GabcWindow *self)
   else
   {
     //TODO Why does the following line cause so many warnings?
-    //gtk_source_buffer_set_language (self->buffer, language);
+    gtk_source_buffer_set_language (self->buffer, language);
   }
 }
 
@@ -498,6 +498,7 @@ gabc_window_save_midi_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, midi_filter);
+  gtk_file_dialog_set_initial_name ( gfd, "export.mid");
 
   gtk_file_dialog_save (gfd,
                         GTK_WINDOW (self),
@@ -519,22 +520,31 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
   char *abc_file_path;
   gint rc;
 
-  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+  const gint dialog_str_buf_len = 50;
+  gchar dialog_str_buf[dialog_str_buf_len];
+
+  g_autoptr (GFile) midi_file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
                                                         NULL);
-  if (file) {
-    g_print ("do the midi file export\n");
-    midi_file_path = g_file_get_path(file);
-    g_print("%s\n", midi_file_path);
+  if (midi_file) {
+    midi_file_path = g_file_get_path(midi_file);
     abc_file_path = gabc_window_write_buffer_to_file (self);
 
     rc = gabc_window_write_midi_file (abc_file_path, midi_file_path, self);
     if ( rc != 0)
       {
-         GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error writing midi file");
-         gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
-         g_object_unref (alert_dialog);
+        g_snprintf (dialog_str_buf, dialog_str_buf_len, "Error writing midi file");
       }
+    else
+      {
+        g_snprintf (dialog_str_buf, dialog_str_buf_len, "OK writing midi file: %s", g_file_get_basename (midi_file) );
+      }
+
+    GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("%s",dialog_str_buf);
+    gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
+    g_object_unref (alert_dialog);
+
+    //g_free (dialog_str_buf);
     g_free (abc_file_path);
     g_free (midi_file_path);
   }
@@ -830,7 +840,6 @@ gabc_window_export_midi_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data)
 {
   GabcWindow *self = user_data;
-  g_print ("export the midi file");
   gabc_window_save_midi_file_dialog (NULL, NULL, self);
 }
 
@@ -901,7 +910,6 @@ gabc_window_set_midi_program (gchar * file_content, gint midi_program)
   if ( error )
   {
     //gabc_log_window_append_to_log (self->log_window, error->message);
-    g_print("Error: %s\n", error->message);
     g_clear_error (&error);
   }
 
@@ -1097,7 +1105,6 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
 
   return_code = 0;
 
-  g_print ("Doing the midi write: %s \n", midi_file_path);
   abc_file = g_file_new_for_path(abc_file_path);
   abc_basename = g_file_get_basename (abc_file);
   //midi_file = g_file_new_for_path(midi_file_path);
