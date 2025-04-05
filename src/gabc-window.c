@@ -149,8 +149,8 @@ gabc_window_write_buffer_to_file (GabcWindow  *self);
 gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self);
 
-static gint
-gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self);
+static void
+gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self, GError **error);
 
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self);
@@ -519,7 +519,7 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
   char *midi_file_path;
   char *abc_file_path;
   GtkAlertDialog *alert_dialog;
-  gint rc;
+  GError *err = NULL;
 
   const gint dialog_str_buf_len = 50;
   gchar dialog_str_buf[dialog_str_buf_len];
@@ -531,8 +531,8 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
     midi_file_path = g_file_get_path(midi_file);
     abc_file_path = gabc_window_write_buffer_to_file (self);
 
-    rc = gabc_window_write_midi_file (abc_file_path, midi_file_path, self);
-    if ( rc != 0)
+    gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
+    if (err != NULL)
       {
         g_snprintf (dialog_str_buf, dialog_str_buf_len, "Error writing midi file");
       }
@@ -876,21 +876,21 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
                         gpointer       user_data)
 {
   gchar *abc_file_path, *midi_file_path;
-  gint rc = 0;
+  GError *err = NULL;
   GabcWindow *self = user_data;
   abc_file_path = gabc_window_write_buffer_to_file (self);
 
   midi_file_path = gabc_window_set_file_extension (abc_file_path, (gchar*)("mid"));
-  rc = gabc_window_write_midi_file (abc_file_path, midi_file_path, self);
-  if ( rc == 0)
+  gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
+  if (err != NULL)
     {
-       gabc_window_play_media_file (midi_file_path, self);
+      GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error converting abc input");
+      gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
+      g_object_unref (alert_dialog);
     }
   else
     {
-       GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error converting abc input");
-       gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
-       g_object_unref (alert_dialog);
+      gabc_window_play_media_file (midi_file_path, self);
     }
 
   g_free (abc_file_path);
@@ -1082,12 +1082,12 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
 }
 
 
-static gint
-gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self)
+static void
+gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWindow *self, GError **error)
 {
   gchar *standard_output;
   gchar *standard_error;
-  GError *error = NULL;
+  GError *abc2midi_error = NULL;
   gint exit_status;
   gboolean result;
 
@@ -1098,11 +1098,8 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
 
   gint barfly_mode;
 
-  gint idx, return_code;
+  gint idx;
   gchar *cmd[10];
-  gchar *error_msg = NULL;
-
-  return_code = 0;
 
   abc_file = g_file_new_for_path(abc_file_path);
   abc_basename = g_file_get_basename (abc_file);
@@ -1135,23 +1132,16 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
                       &standard_output, &standard_error,
-                      &exit_status, &error);
+                      &exit_status, &abc2midi_error);
 
   if (result != TRUE )
     {
-      gabc_log_window_append_to_log (self->log_window, error->message);
-      g_clear_error (&error);
+      gabc_log_window_append_to_log (self->log_window, abc2midi_error->message);
+      g_propagate_error (error, abc2midi_error);
     }
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
   gabc_log_window_append_to_log (self->log_window, standard_error);
-
-  error_msg = g_strrstr (standard_output, "No tune processed");
-
-  if (error_msg  || result == FALSE)
-    {
-      return_code = 1;
-    }
 
   g_object_unref (abc_file);
   //g_object_unref (midi_file);
@@ -1160,7 +1150,6 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   g_free (abc_basename);
   //g_free (midi_basename);
 
-  return return_code;
 }
 
 
