@@ -534,7 +534,7 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
     gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
     if (err != NULL)
       {
-        g_snprintf (dialog_str_buf, dialog_str_buf_len, "Error writing midi file");
+        g_snprintf (dialog_str_buf, dialog_str_buf_len, "Error writing midi file.  See log for details.");
       }
     else
       {
@@ -543,8 +543,8 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
 
     alert_dialog = gtk_alert_dialog_new ("%s", dialog_str_buf);
     gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
-
     g_object_unref (alert_dialog);
+
     g_free (abc_file_path);
     g_free (midi_file_path);
   }
@@ -884,7 +884,7 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
   gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
   if (err != NULL)
     {
-      GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error converting abc input");
+      GtkAlertDialog *alert_dialog = gtk_alert_dialog_new ("Error converting abc input.  See log for details.");
       gtk_alert_dialog_show (alert_dialog, GTK_WINDOW (self));
       g_object_unref (alert_dialog);
     }
@@ -1071,7 +1071,6 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
     {
       ps_file_path = g_strdup ("");
     }
-  //g_array_free
   g_free (standard_output);
   g_free (standard_error);
   g_free (working_dir_path);
@@ -1094,7 +1093,6 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   gchar *abc_basename;
 
   GFile *abc_file;
-  //GFile *midi_file;
 
   gint barfly_mode;
 
@@ -1103,8 +1101,6 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
 
   abc_file = g_file_new_for_path(abc_file_path);
   abc_basename = g_file_get_basename (abc_file);
-  //midi_file = g_file_new_for_path(midi_file_path);
-  //midi_basename = g_file_get_basename (midi_file);
 
   barfly_mode = g_settings_get_enum (self->settings, "abc2midi-barfly-mode");
 
@@ -1144,11 +1140,9 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
   gabc_log_window_append_to_log (self->log_window, standard_error);
 
   g_object_unref (abc_file);
-  //g_object_unref (midi_file);
   g_free (standard_output);
   g_free (standard_error);
   g_free (abc_basename);
-  //g_free (midi_basename);
 
 }
 
