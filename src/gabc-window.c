@@ -948,10 +948,6 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
     {
     text = gabc_window_set_midi_program (text, midi_program);
     }
-  //gint program_number = -1; // read this from settings
-  // regex to find each "^K:[a-z, A-Z]+$"
-  //
-  // Insert a line below
 
   file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
