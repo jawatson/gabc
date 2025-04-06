@@ -1126,10 +1126,29 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
                       &standard_output, &standard_error,
                       &exit_status, &abc2midi_error);
 
-  if (result != TRUE )
+  /* There seems to be a bit of a bug in abc2midi at the moment as no errors are
+   * reported if there is no input file.  A short comment is made to standard out */
+  g_print ("%s\n", standard_output);
+  if (g_strrstr (standard_output, "Error") != NULL)
+    {
+      g_print ("we got an error in abc2midi");
+    }
+
+  if (abc2midi_error != NULL)
     {
       gabc_log_window_append_to_log (self->log_window, abc2midi_error->message);
+      g_print ("write midi file: we got an error\n");
       g_propagate_error (error, abc2midi_error);
+    }
+  else
+    {
+      if (g_strrstr (standard_output, "Error") != NULL)
+        {
+          g_set_error (error,
+                   G_SPAWN_ERROR_FAILED,            // error domain
+                   1,                               // error code
+                   "Failed to process abc file.");  // error message format string
+        }
     }
 
   gabc_log_window_append_to_log (self->log_window, standard_output);
