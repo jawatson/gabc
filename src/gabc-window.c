@@ -47,6 +47,11 @@ typedef struct {
   GabcWindow *gabc_window;
 } file_cb_data_t;
 
+static gboolean
+gabc_close_request_cb (GtkWindow *win, gpointer user_data);
+
+void
+on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data);
 
 static void
 gabc_window_dispose (GObject *object);
@@ -262,6 +267,9 @@ gabc_window_init (GabcWindow *self)
   g_signal_connect (target, "drop", G_CALLBACK (gabc_window_on_drop), self);
   //g_signal_connect (target, "enter", G_CALLBACK (on_enter), self->main_text_view);
   //g_signal_connect (target, "leave", G_CALLBACK (on_leave), self->main_text_view);
+  //
+
+  g_signal_connect (self, "close-request", G_CALLBACK (gabc_close_request_cb), self);
 
   gtk_widget_add_controller (GTK_WIDGET (self->main_text_view), GTK_EVENT_CONTROLLER (target));
 
@@ -300,6 +308,68 @@ gabc_window_init (GabcWindow *self)
     gtk_source_buffer_set_language (self->buffer, language);
   }
 }
+
+static gboolean
+gabc_close_request_cb (GtkWindow *win, gpointer user_data)
+{
+
+  GabcWindow *self;
+  gboolean buffer_is_modified;
+  GtkAlertDialog *dialog;
+  const char* buttons[] = {"Cancel", "Discard", "Save", NULL};
+  self = user_data;
+  g_print ("closing the window...\n");
+  buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  if (buffer_is_modified)
+    {
+      dialog = gtk_alert_dialog_new ("Save Changes?");
+      gtk_alert_dialog_set_message (dialog, "The file has changed.  Do you want to save?");
+      gtk_alert_dialog_set_buttons (dialog, buttons);
+      //gtk_alert_dialog_set_cancel_button (dialog, 0);   // Cancel is at index 0
+      //gtk_alert_dialog_set_default_button (dialog, 2);  // If the user presses enter key,
+      //gtk_window_present (GTK_WINDOW (win));
+      gtk_alert_dialog_choose (dialog, GTK_WINDOW (win), NULL, on_close_choose, self);
+    }
+  else
+    {
+      g_print ("buffer is not modified\n");
+    }
+  return buffer_is_modified;
+}
+
+void on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
+  GabcWindow *self;
+  GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
+  GError *err = NULL;
+
+  self = user_data;
+  int button;
+
+  button = gtk_alert_dialog_choose_finish (dialog, res, &err);
+
+  if (err) {
+    g_print("An error occured!\n");
+    g_print("Error Message: %s\n", err->message);
+    return;
+  }
+
+  if (button == 0) // cancel
+    g_print("Cancelled!\n");
+  else if (button == 1) // discard
+    {
+      g_print("Discard!\n");
+      gtk_window_destroy ( (GtkWindow *) self);
+    }
+  else if (button == 2) // save
+    {
+      g_print("Proceed with whatever!\n");
+      gabc_window_save_file_handler (NULL, NULL, self);
+      gtk_window_destroy ( (GtkWindow *) self);
+    }
+  else
+    g_assert_not_reached();
+}
+
 
 static void
 gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
