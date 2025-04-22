@@ -307,6 +307,7 @@ gabc_window_init (GabcWindow *self)
     //TODO Why does the following line cause so many warnings?
     gtk_source_buffer_set_language (self->buffer, language);
   }
+  gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
 
 static gboolean
@@ -325,9 +326,9 @@ gabc_close_request_cb (GtkWindow *win, gpointer user_data)
       dialog = gtk_alert_dialog_new ("Save Changes?");
       gtk_alert_dialog_set_message (dialog, "The file has changed.  Do you want to save?");
       gtk_alert_dialog_set_buttons (dialog, buttons);
-      //gtk_alert_dialog_set_cancel_button (dialog, 0);   // Cancel is at index 0
-      //gtk_alert_dialog_set_default_button (dialog, 2);  // If the user presses enter key,
-      //gtk_window_present (GTK_WINDOW (win));
+      gtk_alert_dialog_set_cancel_button (dialog, 0);   // Cancel is at index 0
+      gtk_alert_dialog_set_default_button (dialog, 2);  // If the user presses enter key,
+      gtk_window_present (GTK_WINDOW (win));
       gtk_alert_dialog_choose (dialog, GTK_WINDOW (win), NULL, on_close_choose, self);
     }
   else
