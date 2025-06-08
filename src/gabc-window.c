@@ -363,12 +363,16 @@ void on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_d
     }
   else if (button == 2) // save
     {
-      g_print("Proceed with whatever!\n");
+      g_print("Save\n");
       gabc_window_save_file_handler (NULL, NULL, self);
+      g_print ("about to destroy\n");
       gtk_window_destroy ( (GtkWindow *) self);
     }
   else
-    g_assert_not_reached();
+    {
+      g_assert_not_reached();
+    }
+  //g_object_unref (dialog);
 }
 
 
@@ -817,8 +821,10 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data)
 {
   GabcWindow *self = user_data;
+  g_print ("gabc_window_save_file_handler\n");
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
+    g_print (" save file dialog");
     gabc_window_save_file_dialog (NULL, NULL, self);
   }
   else
@@ -847,7 +853,7 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
-
+  g_print ("got to here \n");
   gtk_file_dialog_save (gfd,
                         GTK_WINDOW (self),
                         NULL,
@@ -1255,6 +1261,7 @@ gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
 {
   GFile *media_file = g_file_new_for_path ((char *)file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
+  gtk_file_launcher_set_always_ask( launcher, true);
   gtk_file_launcher_launch (launcher,
                             GTK_WINDOW (self),
                             NULL,
