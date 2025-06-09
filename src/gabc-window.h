@@ -41,6 +41,24 @@ gabc_window_open_file (GabcWindow       *self,
 void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,
                                            GFile            *file);
+/*
+struct _GabcWindow
+{
+	AdwApplicationWindow  parent_instance;
+
+        GSettings           *settings;
+
+        AdwWindowTitle      *window_title;
+	GtkSourceView       *main_text_view;
+        GtkSourceBuffer     *buffer;
+
+        GtkSourceFile       *abc_source_file;
+
+        GabcLogWindow       *log_window;
+};
+
+G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
+*/
 
 G_END_DECLS
 

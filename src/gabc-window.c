@@ -333,7 +333,7 @@ gabc_window_close_request (GtkWindow *window)
       _gabc_save_changes_dialog_run_async (GTK_WINDOW (self),
                                              NULL,
                                              gabc_window_confirm_cb,
-                                             (gpointer) self);
+                                             g_object_ref (self));
       return TRUE;
     }
 
@@ -345,9 +345,10 @@ gabc_window_close_request (GtkWindow *window)
 
 static void
 gabc_window_confirm_cb (GObject      *object,
-                        GAsyncResult *result,
-                        gpointer      user_data)
+                          GAsyncResult *result,
+                          gpointer      user_data)
 {
+  g_print ("gabc_window_confirm_cb:\n");
   g_autoptr(GabcWindow) self = user_data;
   g_autoptr(GError) error = NULL;
 
@@ -356,8 +357,8 @@ gabc_window_confirm_cb (GObject      *object,
 
   if (_gabc_save_changes_dialog_run_finish (result, &error))
     {
-      g_print ("about to close...\n");
       //gabc_window_do_close (self);
+      g_print ("gabc_window_confirm_cb: about to destroy the window\n");
       gtk_window_destroy (GTK_WINDOW (self));
     }
 }
