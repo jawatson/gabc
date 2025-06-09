@@ -24,7 +24,7 @@
 #include "gabc-log-window.h"
 #include "gabc-save-changes-dialog-private.h"
 
-
+/*
 struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
@@ -39,7 +39,7 @@ struct _GabcWindow
 
         GabcLogWindow       *log_window;
 };
-
+*/
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 
@@ -299,7 +299,7 @@ gabc_window_init (GabcWindow *self)
   gtk_source_buffer_set_highlight_syntax (self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
-  self->log_window = gabc_log_window_new (self);
+  self->log_window = gabc_log_window_new ((AdwApplicationWindow *) self);
 
   lm = gtk_source_language_manager_get_default ();
   id = "abc";

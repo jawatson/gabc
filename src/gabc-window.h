@@ -23,6 +23,7 @@
 #include <adwaita.h>
 #include <gtksourceview/gtksource.h>
 #include "gabc-application.h"
+#include "gabc-log-window.h"
 
 
 G_BEGIN_DECLS
@@ -41,7 +42,7 @@ gabc_window_open_file (GabcWindow       *self,
 void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,
                                            GFile            *file);
-/*
+
 struct _GabcWindow
 {
 	AdwApplicationWindow  parent_instance;
@@ -56,7 +57,7 @@ struct _GabcWindow
 
         GabcLogWindow       *log_window;
 };
-
+/*
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 */
 

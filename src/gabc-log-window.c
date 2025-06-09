@@ -72,7 +72,7 @@ gabc_log_window_class_init (GabcLogWindowClass *klass)
 }
 
 GabcLogWindow *
-gabc_log_window_new (GabcWindow *win)
+gabc_log_window_new (AdwApplicationWindow *win)
 {
   return g_object_new (GABC_LOG_WINDOW_TYPE, "transient-for", win,
                                              "title", "Log Viewer",
