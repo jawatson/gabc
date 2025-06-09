@@ -42,5 +42,5 @@ void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,
                                            GFile            *file);
 
-
 G_END_DECLS
+

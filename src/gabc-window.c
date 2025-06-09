@@ -22,6 +22,7 @@
 
 #include "gabc-window.h"
 #include "gabc-log-window.h"
+#include "gabc-save-changes-dialog-private.h"
 
 
 struct _GabcWindow
@@ -48,7 +49,7 @@ typedef struct {
 } file_cb_data_t;
 
 static gboolean
-gabc_close_request_cb (GtkWindow *win, gpointer user_data);
+gabc_window_close_request (GtkWindow *win);
 
 void
 on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data);
@@ -110,6 +111,11 @@ static void
 gabc_window_open_file_cb (GtkSourceFileLoader *loader,
                           GAsyncResult        *result,
                           GabcWindow          *self);
+
+static void
+gabc_window_confirm_cb (GObject      *object,
+                          GAsyncResult *result,
+                          gpointer      user_data);
 
 /* MIDI Export prototypes */
 static void
@@ -191,6 +197,9 @@ gabc_window_class_init (GabcWindowClass *klass)
 
   widget_class = GTK_WIDGET_CLASS (klass);
 
+  GtkWindowClass *window_class = GTK_WINDOW_CLASS (klass);
+  window_class->close_request = gabc_window_close_request;
+
   gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
 
   gtk_widget_class_bind_template_child (widget_class,
@@ -267,9 +276,6 @@ gabc_window_init (GabcWindow *self)
   g_signal_connect (target, "drop", G_CALLBACK (gabc_window_on_drop), self);
   //g_signal_connect (target, "enter", G_CALLBACK (on_enter), self->main_text_view);
   //g_signal_connect (target, "leave", G_CALLBACK (on_leave), self->main_text_view);
-  //
-
-  g_signal_connect (self, "close-request", G_CALLBACK (gabc_close_request_cb), self);
 
   gtk_widget_add_controller (GTK_WIDGET (self->main_text_view), GTK_EVENT_CONTROLLER (target));
 
@@ -311,31 +317,49 @@ gabc_window_init (GabcWindow *self)
 }
 
 static gboolean
-gabc_close_request_cb (GtkWindow *win, gpointer user_data)
+gabc_window_close_request (GtkWindow *window)
 {
-
   GabcWindow *self;
   gboolean buffer_is_modified;
-  GtkAlertDialog *dialog;
-  const char* buttons[] = {"Cancel", "Discard", "Save", NULL};
-  self = user_data;
-  g_print ("closing the window...\n");
+
+  self = (GabcWindow *)window;
+  g_assert (GABC_IS_WINDOW (self));
+  GtkSourceFile *f = self->abc_source_file;
+
   buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
   if (buffer_is_modified)
     {
-      dialog = gtk_alert_dialog_new ("Save Changes?");
-      gtk_alert_dialog_set_message (dialog, "The file has changed.  Do you want to save?");
-      gtk_alert_dialog_set_buttons (dialog, buttons);
-      gtk_alert_dialog_set_cancel_button (dialog, 0);   // Cancel is at index 0
-      gtk_alert_dialog_set_default_button (dialog, 2);  // If the user presses enter key,
-      gtk_window_present (GTK_WINDOW (win));
-      gtk_alert_dialog_choose (dialog, GTK_WINDOW (win), NULL, on_close_choose, self);
+      g_print ("buffer is modified.\n");
+      _gabc_save_changes_dialog_run_async (GTK_WINDOW (self),
+                                             NULL,
+                                             gabc_window_confirm_cb,
+                                             (gpointer) self);
+      return TRUE;
     }
-  else
+
+  //gabc_window_do_close (self); // cleanup
+
+  return GTK_WINDOW_CLASS (gabc_window_parent_class)->close_request (window);
+
+}
+
+static void
+gabc_window_confirm_cb (GObject      *object,
+                        GAsyncResult *result,
+                        gpointer      user_data)
+{
+  g_autoptr(GabcWindow) self = user_data;
+  g_autoptr(GError) error = NULL;
+
+  g_assert (GABC_IS_WINDOW (self));
+  g_assert (G_IS_ASYNC_RESULT (result));
+
+  if (_gabc_save_changes_dialog_run_finish (result, &error))
     {
-      g_print ("buffer is not modified\n");
+      g_print ("about to close...\n");
+      //gabc_window_do_close (self);
+      gtk_window_destroy (GTK_WINDOW (self));
     }
-  return buffer_is_modified;
 }
 
 void on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
