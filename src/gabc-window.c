@@ -374,7 +374,7 @@ void on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_d
   button = gtk_alert_dialog_choose_finish (dialog, res, &err);
 
   if (err) {
-    g_print("An error occured!\n");
+    g_print("An error occurred!\n");
     g_print("Error Message: %s\n", err->message);
     return;
   }
