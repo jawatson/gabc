@@ -1,28 +1,8 @@
-/* editor-save-changes-dialog.c
+/* gabc-save-changes-dialog.c
  *
- * Copyright 2021 Christian Hergert <chergert@redhat.com>
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#define G_LOG_DOMAIN "editor-save-changes-dialog.h"
-
 #include "config.h"
-
-#include <glib/gi18n.h>
 
 #include <adwaita.h>
 #include "gabc-save-changes-dialog-private.h"
@@ -42,6 +22,18 @@ gabc_save_changes_dialog_save_handler (AdwAlertDialog *dialog,
                                      gpointer  user_data);
 
 static void
+gabc_save_changes_dialog_show_file_save_dialog (GabcWindow *parent,
+                                         GTask *task);
+
+static void
+gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       user_data);
+
+static void
+gabc_save_changes_dialog_save (GabcWindow *self, GTask *task);
+
+static void
 gabc_save_changes_dialog_save_cb (GtkSourceFileSaver *saver,
                                 GAsyncResult         *result,
                                 gpointer              user_data);
@@ -52,13 +44,13 @@ _gabc_save_changes_dialog_new ( GtkWindow *parent, gpointer user_data)
 {
   AdwDialog *dialog;
 
-  dialog = adw_alert_dialog_new (_("Save Changes?"),
-                                 _("Open documents contain unsaved changes. Changes which are not saved will be permanently lost."));
+  dialog = adw_alert_dialog_new ("Save Changes?",
+                                 "Open documents contain unsaved changes. Changes which are not saved will be permanently lost.");
 
   adw_alert_dialog_add_responses (ADW_ALERT_DIALOG (dialog),
-                                  "cancel", _("_Cancel"),
-                                  "discard", _("_Discard"),
-                                  "save", _("_Save"),
+                                  "cancel", "Cancel",
+                                  "discard", "Discard",
+                                  "save", "Save",
                                   NULL);
   adw_alert_dialog_set_response_appearance (ADW_ALERT_DIALOG (dialog),
                                             "discard", ADW_RESPONSE_DESTRUCTIVE);
@@ -119,14 +111,6 @@ gabc_save_changes_dialog_response (AdwAlertDialog *dialog,
 {
   g_assert (ADW_IS_ALERT_DIALOG (dialog));
 
-  g_print ("do the response\n");
-
-  // TEST CODE
-  GabcWindow *self;
-  self = (GabcWindow *)user_data;
-  g_assert (GABC_IS_WINDOW (self));
-  GtkSourceFile *f = self->abc_source_file;
-
   if (!g_strcmp0 (response, "discard"))
     {
       g_print ("discard\n");
@@ -134,12 +118,10 @@ gabc_save_changes_dialog_response (AdwAlertDialog *dialog,
     }
   else if (!g_strcmp0 (response, "save"))
     {
-      g_print("do the save\n");
       gabc_save_changes_dialog_save_handler (dialog, user_data);
     }
     else
     {
-      g_print ("user cancelled\n");
       GTask *task = g_object_get_data (G_OBJECT (dialog), "TASK");
       g_task_return_new_error (task,
                                G_IO_ERROR,
@@ -166,37 +148,115 @@ static void
 gabc_save_changes_dialog_save_handler (AdwAlertDialog *dialog,
                                      gpointer  user_data)
 {
-  GabcWindow *self;
+  GabcWindow *parent;
   GTask *task;
-  self = (GabcWindow *)user_data;
-  g_assert (GABC_IS_WINDOW (self));
+  parent = (GabcWindow *)user_data;
+  g_assert (GABC_IS_WINDOW (parent));
 
-  g_print ("gabc_window_save_file_handler\n");
+  task = g_object_get_data (G_OBJECT (dialog), "TASK");
+  g_object_ref (task);
+  g_assert (G_IS_TASK (task));
 
-  if (gtk_source_file_get_location(self->abc_source_file) == NULL)
+  if (gtk_source_file_get_location(parent->abc_source_file) == NULL)
   {
     g_print (" save file dialog");
-    //gabc_window_save_file_dialog (NULL, NULL, self);
+    gabc_save_changes_dialog_show_file_save_dialog (parent, task);
   }
   else
   {
     g_print ("save to abc file location\n");
-    GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                    self->buffer,
-                                    self->abc_source_file);
-
-    task = g_object_get_data (G_OBJECT (dialog), "TASK");
-    g_object_set_data_full (G_OBJECT (saver),
-                          "TASK",
-                          g_steal_pointer (&task),
-                          g_object_unref);
-
-    gtk_source_file_saver_save_async (saver,
-                                    G_PRIORITY_DEFAULT,
-                                    NULL, NULL, NULL, NULL,
-                                    (GAsyncReadyCallback) gabc_save_changes_dialog_save_cb,
-                                    self);
+    gabc_save_changes_dialog_save (parent, task);
   }
+}
+
+static void
+gabc_save_changes_dialog_show_file_save_dialog (GabcWindow *parent, GTask *task)
+{
+  GtkFileDialog *gfd;
+  GtkFileFilter *abc_filter;
+  GListStore *filter_list;
+
+  g_assert (G_IS_TASK (task));
+
+  gfd = gtk_file_dialog_new ();
+  gtk_file_dialog_set_title (gfd, "Save abc File");
+
+
+  //g_object_ref (task);`
+
+  //abc_filter = gabc_window_get_abc_file_filter();
+  //filter_list = gabc_window_get_filter_list(abc_filter);
+
+  //gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
+  //gtk_file_dialog_set_default_filter (gfd, abc_filter);
+
+  g_object_set_data_full (G_OBJECT ( gfd ),
+                        "TASK",
+                        g_steal_pointer (&task),
+                        g_object_unref);
+
+  g_print ("about to open the save\n");
+  gtk_file_dialog_save (gfd,
+                        GTK_WINDOW (parent),
+                        NULL,
+                        gabc_save_changes_dialog_show_file_save_dialog_cb,
+                        G_OBJECT (parent));
+  //g_object_unref (abc_filter);
+  //g_object_unref (filter_list);
+}
+
+
+static void
+gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
+                                 GAsyncResult  *res,
+                                 gpointer       user_data)
+{
+  GTask *task;
+  GabcWindow *self = user_data;
+
+  task = g_object_get_data (G_OBJECT (file_dialog), "TASK");
+  g_object_ref (task);
+  g_assert (G_IS_TASK (task));
+
+  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+                                                        res,
+                                                        NULL);
+  if (file) {
+    gtk_source_file_set_location(self->abc_source_file, file);
+    g_print ("Save the file now\n");
+    gabc_save_changes_dialog_save (self, task);
+  }
+  else
+  {
+    g_print("handle a failed save");
+    g_task_return_new_error (task,
+                               G_IO_ERROR,
+                               G_IO_ERROR_CANCELLED,
+                               "The user cancelled the file save");
+  }
+  g_object_unref (file_dialog);
+}
+
+
+static void
+gabc_save_changes_dialog_save (GabcWindow *self, GTask *task)
+{
+  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
+                                  self->buffer,
+                                  self->abc_source_file);
+
+  g_assert (G_IS_TASK (task));
+
+  g_object_set_data_full (G_OBJECT (saver),
+                        "TASK",
+                        g_steal_pointer (&task),
+                        g_object_unref);
+
+  gtk_source_file_saver_save_async (saver,
+                                  G_PRIORITY_DEFAULT,
+                                  NULL, NULL, NULL, NULL,
+                                  (GAsyncReadyCallback) gabc_save_changes_dialog_save_cb,
+                                  self);
 }
 
 

@@ -849,7 +849,6 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
   g_print ("gabc_window_save_file_handler\n");
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
-    g_print (" save file dialog");
     gabc_window_save_file_dialog (NULL, NULL, self);
   }
   else
@@ -878,7 +877,6 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
-  g_print ("got to here \n");
   gtk_file_dialog_save (gfd,
                         GTK_WINDOW (self),
                         NULL,
