@@ -6,6 +6,7 @@
 
 #include <adwaita.h>
 #include "gabc-save-changes-dialog-private.h"
+#include "gabc-file-filters.h"
 #include "gabc-window.h"
 
 static void
@@ -181,14 +182,13 @@ gabc_save_changes_dialog_show_file_save_dialog (GabcWindow *parent, GTask *task)
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title (gfd, "Save abc File");
 
-
   //g_object_ref (task);`
 
-  //abc_filter = gabc_window_get_abc_file_filter();
-  //filter_list = gabc_window_get_filter_list(abc_filter);
+  abc_filter = gabc_file_filters_get_abc_file_filter();
+  filter_list = gabc_file_filters_get_filter_list(abc_filter);
 
-  //gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
-  //gtk_file_dialog_set_default_filter (gfd, abc_filter);
+  gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
+  gtk_file_dialog_set_default_filter (gfd, abc_filter);
 
   g_object_set_data_full (G_OBJECT ( gfd ),
                         "TASK",
@@ -201,8 +201,8 @@ gabc_save_changes_dialog_show_file_save_dialog (GabcWindow *parent, GTask *task)
                         NULL,
                         gabc_save_changes_dialog_show_file_save_dialog_cb,
                         G_OBJECT (parent));
-  //g_object_unref (abc_filter);
-  //g_object_unref (filter_list);
+  g_object_unref (abc_filter);
+  g_object_unref (filter_list);
 }
 
 

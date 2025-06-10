@@ -3,7 +3,9 @@ gabc_sources = [
   'gabc-application.c',
   'gabc-window.c',
   'gabc-log-window.c',
-  'gabc-prefs-window.c'
+  'gabc-prefs-window.c',
+  'gabc-save-changes-dialog.c',
+  'gabc-file-filters.c'
 ]
 
 

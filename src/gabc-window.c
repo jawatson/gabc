@@ -23,6 +23,7 @@
 #include "gabc-window.h"
 #include "gabc-log-window.h"
 #include "gabc-save-changes-dialog-private.h"
+#include "gabc-file-filters.h"
 
 /*
 struct _GabcWindow
@@ -172,15 +173,6 @@ gabc_window_open_log_dialog (GSimpleAction *action,
                              gpointer       user_data);
 
 // General Utilities
-GtkFileFilter *
-gabc_window_get_abc_file_filter (void);
-
-GtkFileFilter *
-gabc_window_get_midi_file_filter (void);
-
-GListStore *
-gabc_window_get_filter_list (GtkFileFilter *abc_filter);
-
 gchar *
 gabc_window_set_file_extension (gchar *file_path, gchar *extension);
 
@@ -538,7 +530,6 @@ gabc_window_new (GabcApplication *app)
 }
 
 
-
 static void
 gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
                           GVariant      *parameter G_GNUC_UNUSED,
@@ -548,34 +539,6 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), "", -1);
   gtk_source_file_set_location (self->abc_source_file, NULL);
   gabc_window_set_window_title (self);
-}
-
-
-GtkFileFilter *
-gabc_window_get_abc_file_filter (void)
-{
-  GtkFileFilter *abc_filter = gtk_file_filter_new();
-  gtk_file_filter_add_pattern(abc_filter, "*.abc");
-  return abc_filter;
-}
-
-GtkFileFilter *
-gabc_window_get_midi_file_filter (void)
-{
-  GtkFileFilter *midi_filter = gtk_file_filter_new();
-  gtk_file_filter_add_pattern(midi_filter, "*.mid");
-  gtk_file_filter_add_pattern(midi_filter, "*.midi");
-  return midi_filter;
-}
-
-
-
-GListStore *
-gabc_window_get_filter_list (GtkFileFilter *filter)
-{
-  GListStore *filter_list = g_list_store_new( G_TYPE_OBJECT );
-  g_list_store_append (filter_list, G_OBJECT (filter));
-  return filter_list;
 }
 
 
@@ -593,8 +556,8 @@ gabc_window_save_midi_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title (gfd, "Export MIDI File");
 
-  midi_filter = gabc_window_get_midi_file_filter();
-  filter_list = gabc_window_get_filter_list(midi_filter);
+  midi_filter = gabc_file_filters_get_midi_file_filter();
+  filter_list = gabc_file_filters_get_filter_list(midi_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, midi_filter);
@@ -666,8 +629,8 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title ( gfd, "Open abc File");
 
-  abc_filter = gabc_window_get_abc_file_filter();
-  filter_list = gabc_window_get_filter_list(abc_filter);
+  abc_filter = gabc_file_filters_get_abc_file_filter();
+  filter_list = gabc_file_filters_get_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
@@ -872,8 +835,8 @@ gabc_window_save_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
   gfd = gtk_file_dialog_new ();
   gtk_file_dialog_set_title (gfd, "Save abc File");
 
-  abc_filter = gabc_window_get_abc_file_filter();
-  filter_list = gabc_window_get_filter_list(abc_filter);
+  abc_filter = gabc_file_filters_get_abc_file_filter();
+  filter_list = gabc_file_filters_get_filter_list(abc_filter);
 
   gtk_file_dialog_set_filters (gfd, G_LIST_MODEL (filter_list));
   gtk_file_dialog_set_default_filter (gfd, abc_filter);
