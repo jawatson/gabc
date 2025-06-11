@@ -71,7 +71,6 @@ _gabc_save_changes_dialog_new ( GtkWindow *parent, gpointer user_data)
 }
 
 
-
 void
 _gabc_save_changes_dialog_run_async (GtkWindow           *parent,
                                        GCancellable        *cancellable,

@@ -312,14 +312,13 @@ static gboolean
 gabc_window_close_request (GtkWindow *window)
 {
   GabcWindow *self;
-  gboolean buffer_is_modified;
+  gboolean gabc_buffer_is_modified;
 
   self = (GabcWindow *)window;
   g_assert (GABC_IS_WINDOW (self));
-  GtkSourceFile *f = self->abc_source_file;
 
-  buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
-  if (buffer_is_modified)
+  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  if (self->buffer_is_modified || gabc_buffer_is_modified)
     {
       g_print ("buffer is modified.\n");
       _gabc_save_changes_dialog_run_async (GTK_WINDOW (self),
@@ -649,15 +648,19 @@ gabc_window_open_file_dialog (GSimpleAction *action G_GNUC_UNUSED,
 static void
 gabc_window_file_open_cb (GObject       *file_dialog,
               GAsyncResult  *res,
-              gpointer       self)
+              gpointer       user_data)
 {
+  GabcWindow *self;
   g_autoptr (GFile) file = gtk_file_dialog_open_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
                                                         NULL);
+
+  self = (GabcWindow *) user_data;
   if (file) {
     gabc_windows_present_file (self, file);
     g_object_ref (file);  // Hang on to the file object for now.
   }
+  self->buffer_is_modified = FALSE;
   g_object_unref (file_dialog);
 }
 
@@ -720,6 +723,7 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
     gabc_window_set_window_title (self);
+    self->buffer_is_modified = FALSE;
   }
   g_object_unref (loader);
 }
@@ -864,6 +868,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gabc_window_save_to_abc_file_location (self);
     gabc_window_set_window_title (self);
   }
+  self->buffer_is_modified = FALSE;
   g_object_unref (file_dialog);
 }
 
@@ -913,8 +918,11 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
                           gpointer       user_data)
 {
   gchar *abc_file_path, *ps_file_path;
+  gboolean gabc_buffer_is_modified;
   GabcWindow *self = user_data;
 
+  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  self->buffer_is_modified =   self->buffer_is_modified || gabc_buffer_is_modified;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   if ((ps_file_path != NULL) && (ps_file_path[0] != '\0'))
@@ -939,8 +947,12 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
                         gpointer       user_data)
 {
   gchar *abc_file_path, *midi_file_path;
+  gboolean gabc_buffer_is_modified;
   GError *err = NULL;
   GabcWindow *self = user_data;
+
+  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+
   abc_file_path = gabc_window_write_buffer_to_file (self);
 
   midi_file_path = gabc_window_set_file_extension (abc_file_path, (gchar*)("mid"));
