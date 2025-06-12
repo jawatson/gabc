@@ -85,7 +85,7 @@ gabc_application_about_action (GSimpleAction *action,
 	                       "application-name", "gabc",
 	                       "application-icon", "me.pm.m0dns.gabc",
 	                       "developer-name", "James Watson",
-	                       "version", "0.1.1",
+	                       "version", "0.2",
 	                       "developers", developers,
 	                       "copyright", "© 2025 James Watson",
 	                       NULL);
