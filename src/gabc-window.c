@@ -25,24 +25,7 @@
 #include "gabc-save-changes-dialog-private.h"
 #include "gabc-file-filters.h"
 
-/*
-struct _GabcWindow
-{
-	AdwApplicationWindow  parent_instance;
-
-        GSettings           *settings;
-
-        AdwWindowTitle      *window_title;
-	GtkSourceView       *main_text_view;
-        GtkSourceBuffer     *buffer;
-
-        GtkSourceFile       *abc_source_file;
-
-        GabcLogWindow       *log_window;
-};
-*/
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
-
 
 typedef struct {
   GFile *abc_file;
@@ -660,7 +643,6 @@ gabc_window_file_open_cb (GObject       *file_dialog,
     gabc_windows_present_file (self, file);
     g_object_ref (file);  // Hang on to the file object for now.
   }
-  self->buffer_is_modified = FALSE;
   g_object_unref (file_dialog);
 }
 
@@ -723,6 +705,7 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
     gabc_window_set_window_title (self);
+    g_print ("gabc_window_file_open_cb: set self->buffer_is_modified = FALSE\n");
     self->buffer_is_modified = FALSE;
   }
   g_object_unref (loader);
@@ -867,8 +850,9 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gtk_source_file_set_location(self->abc_source_file, file);
     gabc_window_save_to_abc_file_location (self);
     gabc_window_set_window_title (self);
+    g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
+    self->buffer_is_modified = FALSE;
   }
-  self->buffer_is_modified = FALSE;
   g_object_unref (file_dialog);
 }
 
@@ -898,6 +882,11 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
   {
     g_printerr ("Error saving file: %s\n", error->message);
     g_clear_error (&error);
+  }
+  else
+  {
+    g_print ("gabc_window_save_file_async_cb: Setting self->buffer_is_modified = FALSE\n");
+    self->buffer_is_modified = FALSE;
   }
   g_object_unref (saver);
 }
@@ -1014,6 +1003,10 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
   gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
   text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->buffer), &start, &end, FALSE);
+
+  self->buffer_is_modified = self->buffer_is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->buffer));
+  g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
+
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
