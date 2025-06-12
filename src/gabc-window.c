@@ -35,9 +35,6 @@ typedef struct {
 static gboolean
 gabc_window_close_request (GtkWindow *win);
 
-void
-on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data);
-
 static void
 gabc_window_dispose (GObject *object);
 
@@ -167,12 +164,14 @@ static void
 gabc_window_class_init (GabcWindowClass *klass)
 {
   GtkWidgetClass *widget_class;
+  GtkWindowClass *window_class;
 
   G_OBJECT_CLASS (klass)->dispose = gabc_window_dispose;
 
   widget_class = GTK_WIDGET_CLASS (klass);
 
-  GtkWindowClass *window_class = GTK_WINDOW_CLASS (klass);
+  window_class = GTK_WINDOW_CLASS (klass);
+
   window_class->close_request = gabc_window_close_request;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/me/pm/m0dns/gabc/gabc-window.ui");
@@ -301,17 +300,17 @@ gabc_window_close_request (GtkWindow *window)
   g_assert (GABC_IS_WINDOW (self));
 
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  //g_print ("gabc_window_close_request: self->buffer_is_modified is %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
+  //g_print ("gabc_window_close_request: gabc_buffer_is_modified is %s\n", gabc_buffer_is_modified ? "TRUE" : "FALSE");
   if (self->buffer_is_modified || gabc_buffer_is_modified)
     {
-      g_print ("buffer is modified.\n");
+      //g_print ("buffer is modified.\n");
       _gabc_save_changes_dialog_run_async (GTK_WINDOW (self),
                                              NULL,
                                              gabc_window_confirm_cb,
                                              g_object_ref (self));
       return TRUE;
     }
-
-  //gabc_window_do_close (self); // cleanup
 
   return GTK_WINDOW_CLASS (gabc_window_parent_class)->close_request (window);
 
@@ -322,7 +321,6 @@ gabc_window_confirm_cb (GObject      *object,
                           GAsyncResult *result,
                           gpointer      user_data)
 {
-  g_print ("gabc_window_confirm_cb:\n");
   g_autoptr(GabcWindow) self = user_data;
   g_autoptr(GError) error = NULL;
 
@@ -331,47 +329,9 @@ gabc_window_confirm_cb (GObject      *object,
 
   if (_gabc_save_changes_dialog_run_finish (result, &error))
     {
-      //gabc_window_do_close (self);
-      g_print ("gabc_window_confirm_cb: about to destroy the window\n");
+      //g_print ("gabc_window_confirm_cb: about to destroy the window\n");
       gtk_window_destroy (GTK_WINDOW (self));
     }
-}
-
-void on_close_choose (GObject *source_object, GAsyncResult *res, gpointer user_data) {
-  GabcWindow *self;
-  GtkAlertDialog *dialog = GTK_ALERT_DIALOG (source_object);
-  GError *err = NULL;
-
-  self = user_data;
-  int button;
-
-  button = gtk_alert_dialog_choose_finish (dialog, res, &err);
-
-  if (err) {
-    g_print("An error occurred!\n");
-    g_print("Error Message: %s\n", err->message);
-    return;
-  }
-
-  if (button == 0) // cancel
-    g_print("Cancelled!\n");
-  else if (button == 1) // discard
-    {
-      g_print("Discard!\n");
-      gtk_window_destroy ( (GtkWindow *) self);
-    }
-  else if (button == 2) // save
-    {
-      g_print("Save\n");
-      gabc_window_save_file_handler (NULL, NULL, self);
-      g_print ("about to destroy\n");
-      gtk_window_destroy ( (GtkWindow *) self);
-    }
-  else
-    {
-      g_assert_not_reached();
-    }
-  //g_object_unref (dialog);
 }
 
 
@@ -705,7 +665,7 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
     gabc_window_set_window_title (self);
-    g_print ("gabc_window_file_open_cb: set self->buffer_is_modified = FALSE\n");
+    //g_print ("gabc_window_file_open_cb: set self->buffer_is_modified = FALSE\n");
     self->buffer_is_modified = FALSE;
   }
   g_object_unref (loader);
@@ -796,7 +756,7 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data)
 {
   GabcWindow *self = user_data;
-  g_print ("gabc_window_save_file_handler\n");
+  //g_print ("gabc_window_save_file_handler\n");
   if (gtk_source_file_get_location(self->abc_source_file) == NULL)
   {
     gabc_window_save_file_dialog (NULL, NULL, self);
@@ -850,7 +810,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gtk_source_file_set_location(self->abc_source_file, file);
     gabc_window_save_to_abc_file_location (self);
     gabc_window_set_window_title (self);
-    g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
+    //g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
     self->buffer_is_modified = FALSE;
   }
   g_object_unref (file_dialog);
@@ -885,7 +845,7 @@ gabc_window_save_file_async_cb (GtkSourceFileSaver *saver,
   }
   else
   {
-    g_print ("gabc_window_save_file_async_cb: Setting self->buffer_is_modified = FALSE\n");
+    // ("gabc_window_save_file_async_cb: Setting self->buffer_is_modified = FALSE\n");
     self->buffer_is_modified = FALSE;
   }
   g_object_unref (saver);
@@ -936,11 +896,11 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
                         gpointer       user_data)
 {
   gchar *abc_file_path, *midi_file_path;
-  gboolean gabc_buffer_is_modified;
+  //gboolean gabc_buffer_is_modified;
   GError *err = NULL;
   GabcWindow *self = user_data;
 
-  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
 
   abc_file_path = gabc_window_write_buffer_to_file (self);
 
@@ -1005,7 +965,7 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->buffer), &start, &end, FALSE);
 
   self->buffer_is_modified = self->buffer_is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->buffer));
-  g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
+  //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
 
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
@@ -1189,13 +1149,19 @@ gabc_window_write_midi_file (gchar *abc_file_path, gchar *midi_file_path, GabcWi
 
   cmd[idx++] = NULL;
 
-  result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
+
+   result = g_spawn_sync (g_getenv("XDG_CACHE_HOME"), (gchar **)cmd, NULL,
                       G_SPAWN_SEARCH_PATH, NULL, NULL,
                       &standard_output, &standard_error,
                       &exit_status, &abc2midi_error);
 
+
   /* There seems to be a bit of a bug in abc2midi at the moment as no errors are
    * reported if there is no input file.  A short comment is made to standard out */
+  if (!result)
+    {
+      g_print ("Error when running abc2midi\n");
+    }
   g_print ("%s\n", standard_output);
   if (g_strrstr (standard_output, "Error") != NULL)
     {
