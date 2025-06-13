@@ -10,6 +10,7 @@ struct _GabcPrefsWindow
 
   GSettings *settings;
   GtkWidget *dark_btn;
+  GtkWidget *file_launcher_always_ask_btn;
   GtkWidget *abcm2ps_errors_switch;
   GtkWidget *abcm2ps_page_number_combo;
 
@@ -56,6 +57,10 @@ gabc_prefs_window_init (GabcPrefsWindow *self)
 
   g_settings_bind (self->settings, "dark-theme",
                    self->dark_btn, "active",
+                   G_SETTINGS_BIND_DEFAULT);
+
+  g_settings_bind (self->settings, "file-launcher-always-ask",
+                   self->file_launcher_always_ask_btn, "active",
                    G_SETTINGS_BIND_DEFAULT);
 
   g_settings_bind (self->settings, "abcm2ps-show-errors",
@@ -114,6 +119,7 @@ gabc_prefs_window_class_init (GabcPrefsWindowClass *klass)
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (klass),
                                                "/me/pm/m0dns/gabc/gabc-prefs-window.ui");
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, dark_btn);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, file_launcher_always_ask_btn);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_errors_switch);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_fmt_file_action_row);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (klass), GabcPrefsWindow, abcm2ps_fmt_clear_btn);

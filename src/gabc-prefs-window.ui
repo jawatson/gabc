@@ -27,24 +27,20 @@
                 </child>
               </object>
             </child>
-            <!--
+
             <child>
-              <object class="AdwComboRow" id="blur_row">
-                <property name="title" translatable="yes">Background blur mode</property>
-              </object>
-            </child>
-            <child>
-              <object class="AdwActionRow" id="compact_list">
-                <property name="title" translatable="yes">Compact playlist view</property>
-                <property name="activatable_widget">compact_btn</property>
+              <object class="AdwActionRow" id="file_launcher_always_ask">
+                <property name="title" translatable="yes">Prompt for media player</property>
+                <property name="activatable_widget">file_launcher_always_ask_btn</property>
                 <child>
-                  <object class="GtkSwitch" id="compact_btn">
+                  <object class="GtkSwitch" id="file_launcher_always_ask_btn">
+                    <property name="action-name">prefs.theme</property>
                     <property name="valign">center</property>
                   </object>
                 </child>
+
               </object>
             </child>
-            -->
           </object>
         </child>
       </object>

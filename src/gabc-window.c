@@ -1216,9 +1216,12 @@ play_media_cb (GtkFileLauncher *launcher,
 static void
 gabc_window_play_media_file (gchar *file_path, GabcWindow *self)
 {
+  gboolean file_launcher_always_ask;
+
   GFile *media_file = g_file_new_for_path ((char *)file_path);
   GtkFileLauncher *launcher = gtk_file_launcher_new (media_file);
-  gtk_file_launcher_set_always_ask( launcher, true);
+  file_launcher_always_ask = g_settings_get_boolean (self->settings, "file-launcher-always-ask");
+  gtk_file_launcher_set_always_ask( launcher, file_launcher_always_ask);
   gtk_file_launcher_launch (launcher,
                             GTK_WINDOW (self),
                             NULL,

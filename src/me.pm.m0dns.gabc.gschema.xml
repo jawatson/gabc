@@ -23,6 +23,11 @@
       <summary>Prefer dark theme</summary>
     </key>
 
+    <key name="file-launcher-always-ask" type="b">
+      <default>true</default>
+      <summary>Always Ask which media player to use</summary>
+    </key>
+
     <key name="abcm2ps-show-errors" type="b">
       <default>true</default>
       <summary>Show errors in engraved file.</summary>
