@@ -49,9 +49,6 @@ gabc_window_on_drop (GtkDropTarget *target,
          gpointer data);
 
 
-static gboolean
-gabc_window_buffer_has_content (GabcWindow *self);
-
 static void
 gabc_windows_present_file (GabcWindow *self, GFile *file);
 
@@ -182,7 +179,7 @@ gabc_window_class_init (GabcWindowClass *klass)
 
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcWindow,
-                                        buffer);
+                                        tunebook);
 
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcWindow,
@@ -270,7 +267,7 @@ gabc_window_init (GabcWindow *self)
 
   self->abc_source_file = gtk_source_file_new ();
 
-  gtk_source_buffer_set_highlight_syntax ((GtkSourceBuffer *) self->buffer, true);
+  gtk_source_buffer_set_highlight_syntax ((GtkSourceBuffer *) self->tunebook, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   self->log_window = gabc_log_window_new ((AdwApplicationWindow *) self);
@@ -286,7 +283,7 @@ gabc_window_init (GabcWindow *self)
   {
     //TODO Why does the following line cause so many warnings?
     // TODO move this to the tunebook class.
-    gtk_source_buffer_set_language ((GtkSourceBuffer *) self->buffer, language);
+    gtk_source_buffer_set_language ((GtkSourceBuffer *) self->tunebook, language);
   }
   gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
@@ -300,7 +297,7 @@ gabc_window_close_request (GtkWindow *window)
   self = (GabcWindow *)window;
   g_assert (GABC_IS_WINDOW (self));
 
-  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
   //g_print ("gabc_window_close_request: self->buffer_is_modified is %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
   //g_print ("gabc_window_close_request: gabc_buffer_is_modified is %s\n", gabc_buffer_is_modified ? "TRUE" : "FALSE");
   if (self->buffer_is_modified || gabc_buffer_is_modified)
@@ -406,20 +403,13 @@ gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *abc_file)
 
 static void
 gabc_windows_present_file (GabcWindow *self, GFile *file) {
-  if ( gabc_window_buffer_has_content(self) ) {
-    gabc_window_open_drop_action_dialog (self, file);
-  } else {
+  if ( gabc_tunebook_is_empty(self->tunebook) ) {
     gabc_window_open_file (self, file);
+  } else {
+    gabc_window_open_drop_action_dialog (self, file);
   }
 }
 
-static gboolean
-gabc_window_buffer_has_content (GabcWindow *self) {
-  GtkTextIter start;
-  GtkTextIter end;
-  gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER (self->buffer), &start, &end);
-  return !gtk_text_iter_equal (&start, &end);
-}
 
 
 static gboolean
@@ -479,7 +469,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
                           gpointer       user_data)
 {
   GabcWindow *self = GABC_WINDOW (user_data);
-  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->buffer), "", -1);
+  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->tunebook), "", -1);
   gtk_source_file_set_location (self->abc_source_file, NULL);
   gabc_window_set_window_title (self);
 }
@@ -662,8 +652,8 @@ gabc_window_open_file_cb (GtkSourceFileLoader *loader,
   }
   else
   {
-    gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
-    gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->buffer), &start);
+    gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->tunebook), &start);
+    gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->tunebook), &start);
     gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
     gabc_window_set_window_title (self);
     //g_print ("gabc_window_file_open_cb: set self->buffer_is_modified = FALSE\n");
@@ -680,7 +670,7 @@ gabc_window_open_file (GabcWindow      *self,
 
   GtkSourceFileLoader *loader;
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
-  loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->buffer),
+  loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->tunebook),
                                        GTK_SOURCE_FILE (self->abc_source_file));
 
   gtk_source_file_loader_load_async (loader,
@@ -726,13 +716,13 @@ open_append_file_cb  (GObject       *source_object,
       return;
     }
 
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
 
-  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->buffer), &end, "\n\n", -1);
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->tunebook), &end, "\n\n", -1);
 
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
 
-  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->buffer),
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->tunebook),
                          &end,
                          contents,
                          -1);
@@ -822,7 +812,7 @@ static void
 gabc_window_save_to_abc_file_location(GabcWindow *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                    (GtkSourceBuffer *) self->buffer,
+                                    (GtkSourceBuffer *) self->tunebook,
                                     self->abc_source_file);
   gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
@@ -871,7 +861,7 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
   gboolean gabc_buffer_is_modified;
   GabcWindow *self = user_data;
 
-  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
   self->buffer_is_modified =   self->buffer_is_modified || gabc_buffer_is_modified;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
@@ -901,7 +891,7 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
   GError *err = NULL;
   GabcWindow *self = user_data;
 
-  //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->buffer);
+  //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
 
   abc_file_path = gabc_window_write_buffer_to_file (self);
 
@@ -961,14 +951,14 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   gint midi_program;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
-  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->buffer), &start);
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->buffer), &end);
-  text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->buffer), &start, &end, FALSE);
+  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->tunebook), &start);
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
+  text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->tunebook), &start, &end, FALSE);
 
-  self->buffer_is_modified = self->buffer_is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->buffer));
+  self->buffer_is_modified = self->buffer_is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->tunebook));
   //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
 
-  gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->buffer), FALSE);
+  gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->tunebook), FALSE);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
   // Preprocess the file here

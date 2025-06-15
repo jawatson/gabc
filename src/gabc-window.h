@@ -52,7 +52,7 @@ struct _GabcWindow
 
         AdwWindowTitle      *window_title;
 	GtkSourceView       *main_text_view;
-        GabcTunebook        *buffer;
+        GabcTunebook        *tunebook;
 
         GtkSourceFile       *abc_source_file;
         gboolean            buffer_is_modified;

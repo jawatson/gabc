@@ -49,6 +49,7 @@ void                      editor_document_set_encoding            (EditorDocumen
 
 //GFile                    *gabc_tunebook_get_file                (GabcTunebook  *self);
 
-gboolean                  gabc_document_get_busy                (GabcTunebook  *self);
+gboolean                  gabc_document_get_busy                  (GabcTunebook *self);
+gboolean                  gabc_tunebook_is_empty                  (GabcTunebook *self);
 
 G_END_DECLS

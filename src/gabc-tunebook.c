@@ -18,6 +18,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "gabc-window.h"
 #include "gabc-tunebook.h"
 
 struct _GabcTunebook
@@ -25,7 +26,8 @@ struct _GabcTunebook
   GtkSourceBuffer               parent_instance;
 
   /*
-  EditorBufferMonitor          *monitor;
+
+   *   EditorBufferMonitor          *monitor;
   GtkSourceFile                *file;
   gchar                        *draft_id;
   const GtkSourceEncoding      *encoding;
@@ -39,3 +41,21 @@ gabc_document_get_busy (GabcTunebook  *self)
 {
   return true;
 }
+
+gboolean
+gabc_tunebook_is_empty (GabcTunebook *self) {
+  GtkTextIter start;
+  GtkTextIter end;
+  gboolean is_empty;
+  gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER (self), &start, &end);
+  is_empty = gtk_text_iter_equal (&start, &end);
+  if (is_empty) {
+    g_print("gabc_tunebook_is_empty: TRUE\n");
+  }
+  else
+    {
+     g_print("gabc_tunebook_is_empty: FALSE\n");
+    }
+  return is_empty;
+}
+
