@@ -24,6 +24,7 @@
 #include <gtksourceview/gtksource.h>
 #include "gabc-application.h"
 #include "gabc-log-window.h"
+#include "gabc-tunebook.h"
 
 
 G_BEGIN_DECLS
@@ -51,7 +52,7 @@ struct _GabcWindow
 
         AdwWindowTitle      *window_title;
 	GtkSourceView       *main_text_view;
-        GtkSourceBuffer     *buffer;
+        GabcTunebook        *buffer;
 
         GtkSourceFile       *abc_source_file;
         gboolean            buffer_is_modified;

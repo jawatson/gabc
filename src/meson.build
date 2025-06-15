@@ -5,7 +5,8 @@ gabc_sources = [
   'gabc-log-window.c',
   'gabc-prefs-window.c',
   'gabc-save-changes-dialog.c',
-  'gabc-file-filters.c'
+  'gabc-file-filters.c',
+  'gabc-tunebook.c'
 ]
 
 

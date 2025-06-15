@@ -20,7 +20,7 @@
 #pragma once
 
 #include <gtk/gtk.h>
-//#include <gtksourceview/gtksource.h>
+#include <gtksourceview/gtksource.h>
 
 G_BEGIN_DECLS
 

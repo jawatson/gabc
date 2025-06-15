@@ -241,7 +241,7 @@ static void
 gabc_save_changes_dialog_save (GabcWindow *self, GTask *task)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                  self->buffer,
+                                  (GtkSourceBuffer *) self->buffer,
                                   self->abc_source_file);
 
   g_assert (G_IS_TASK (task));

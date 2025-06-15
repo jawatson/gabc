@@ -270,7 +270,7 @@ gabc_window_init (GabcWindow *self)
 
   self->abc_source_file = gtk_source_file_new ();
 
-  gtk_source_buffer_set_highlight_syntax (self->buffer, true);
+  gtk_source_buffer_set_highlight_syntax ((GtkSourceBuffer *) self->buffer, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   self->log_window = gabc_log_window_new ((AdwApplicationWindow *) self);
@@ -285,7 +285,8 @@ gabc_window_init (GabcWindow *self)
   else
   {
     //TODO Why does the following line cause so many warnings?
-    gtk_source_buffer_set_language (self->buffer, language);
+    // TODO move this to the tunebook class.
+    gtk_source_buffer_set_language ((GtkSourceBuffer *) self->buffer, language);
   }
   gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
@@ -821,7 +822,7 @@ static void
 gabc_window_save_to_abc_file_location(GabcWindow *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                    self->buffer,
+                                    (GtkSourceBuffer *) self->buffer,
                                     self->abc_source_file);
   gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
