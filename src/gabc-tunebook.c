@@ -22,13 +22,39 @@
 #include "gabc-tunebook.h"
 
 
-
-
-gboolean
-gabc_document_get_busy (GabcTunebook  *self)
+void
+gabc_tunebook_save_to_abc_file_location(GabcTunebook *self)
 {
-  return true;
+  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
+                                    (GtkSourceBuffer *) self,
+                                    self->abc_source_file);
+  gtk_source_file_saver_save_async (saver,
+                                    G_PRIORITY_DEFAULT,
+                                    NULL, NULL, NULL, NULL,
+                                    (GAsyncReadyCallback) gabc_tunebook_save_file_async_cb,
+                                    self);
 }
+
+void
+gabc_tunebook_save_file_async_cb (GtkSourceFileSaver *saver,
+                                GAsyncResult       *result,
+                                GabcTunebook         *self)
+{
+  GError *error = NULL;
+
+  if (!gtk_source_file_saver_save_finish (saver, result, &error))
+  {
+    g_printerr ("Error saving file: %s\n", error->message);
+    g_clear_error (&error);
+  }
+  else
+  {
+    // ("gabc_window_save_file_async_cb: Setting self->buffer_is_modified = FALSE\n");
+    self->tunebook_is_modified = FALSE;
+  }
+  g_object_unref (saver);
+}
+
 
 gboolean
 gabc_tunebook_is_empty (GabcTunebook *self) {

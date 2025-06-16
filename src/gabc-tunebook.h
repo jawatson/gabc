@@ -32,6 +32,7 @@ struct _GabcTunebook
 {
   GtkSourceBuffer               parent_instance;
   GtkSourceFile                *abc_source_file;
+  gboolean                      tunebook_is_modified;
   /*
 
    *   EditorBufferMonitor          *monitor;
@@ -42,28 +43,15 @@ struct _GabcTunebook
   */
 };
 
-/*
-EditorDocument           *editor_document_new_draft               (void);
-EditorDocument           *editor_document_new_for_file            (GFile           *file);
-gboolean                  editor_document_get_busy                (EditorDocument  *self);
-gdouble                   editor_document_get_busy_progress       (EditorDocument  *self);
-GFile                    *editor_document_get_file                (EditorDocument  *self);
-gchar                    *editor_document_dup_title               (EditorDocument  *self);
-gboolean                  editor_document_get_externally_modified (EditorDocument  *self);
-SpellingChecker          *editor_document_get_spell_checker       (EditorDocument  *self);
-void                      editor_document_set_spell_checker       (EditorDocument  *self,
-                                                                   SpellingChecker *spell_checker);
-void                      editor_document_update_corrections      (EditorDocument  *self);
-GMenuModel               *editor_document_get_spelling_menu       (EditorDocument  *self);
-EditorDocumentStatistics *editor_document_load_statistics         (EditorDocument  *self);
-EditorEncoding           *editor_document_dup_encoding            (EditorDocument  *self);
-void                      editor_document_set_encoding            (EditorDocument  *self,
-                                                                   EditorEncoding  *encoding);
- */
 
 //GFile                    *gabc_tunebook_get_file                (GabcTunebook  *self);
 
-gboolean                  gabc_document_get_busy                  (GabcTunebook *self);
 gboolean                  gabc_tunebook_is_empty                  (GabcTunebook *self);
+void                      gabc_tunebook_save_file                 (GabcTunebook *self);
+
+void                      gabc_tunebook_save_file_async_cb        (GtkSourceFileSaver *saver,
+                                                                   GAsyncResult       *result,
+                                                                   GabcTunebook       *self);
+
 
 G_END_DECLS
