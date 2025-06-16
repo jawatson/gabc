@@ -54,7 +54,6 @@ struct _GabcWindow
 	GtkSourceView       *main_text_view;
         GabcTunebook        *tunebook;
 
-        GtkSourceFile       *abc_source_file;
         gboolean            buffer_is_modified;
 
         GabcLogWindow       *log_window;

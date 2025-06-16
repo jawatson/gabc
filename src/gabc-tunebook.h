@@ -28,6 +28,20 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (GabcTunebook, gabc_tunebook, GABC, TUNEBOOK, GtkSourceBuffer)
 
+struct _GabcTunebook
+{
+  GtkSourceBuffer               parent_instance;
+  GtkSourceFile                *abc_source_file;
+  /*
+
+   *   EditorBufferMonitor          *monitor;
+  GtkSourceFile                *file;
+  gchar                        *draft_id;
+  const GtkSourceEncoding      *encoding;
+  GError                       *last_error;
+  */
+};
+
 /*
 EditorDocument           *editor_document_new_draft               (void);
 EditorDocument           *editor_document_new_for_file            (GFile           *file);

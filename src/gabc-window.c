@@ -265,7 +265,7 @@ gabc_window_init (GabcWindow *self)
                               NULL,
                               NULL);
 
-  self->abc_source_file = gtk_source_file_new ();
+  self->tunebook->abc_source_file = gtk_source_file_new ();
 
   gtk_source_buffer_set_highlight_syntax ((GtkSourceBuffer *) self->tunebook, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
@@ -451,7 +451,7 @@ gabc_window_dispose (GObject *object)
 
   g_clear_object (&win->settings);
 
-  g_clear_object (&win->abc_source_file);
+  g_clear_object (&win->tunebook->abc_source_file);
 
   G_OBJECT_CLASS (gabc_window_parent_class)->dispose (object);
 }
@@ -470,7 +470,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
 {
   GabcWindow *self = GABC_WINDOW (user_data);
   gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->tunebook), "", -1);
-  gtk_source_file_set_location (self->abc_source_file, NULL);
+  gtk_source_file_set_location (self->tunebook->abc_source_file, NULL);
   gabc_window_set_window_title (self);
 }
 
@@ -607,7 +607,7 @@ gabc_window_set_window_title (GabcWindow *self)
   gchar *title;
   gchar *sub_title;
 
-  source_file = gtk_source_file_get_location(self->abc_source_file);
+  source_file = gtk_source_file_get_location(self->tunebook->abc_source_file);
 
   if (G_IS_FILE (source_file))
     {
@@ -669,9 +669,9 @@ gabc_window_open_file (GabcWindow      *self,
 {
 
   GtkSourceFileLoader *loader;
-  gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
+  gtk_source_file_set_location(GTK_SOURCE_FILE (self->tunebook->abc_source_file), file);
   loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->tunebook),
-                                       GTK_SOURCE_FILE (self->abc_source_file));
+                                       GTK_SOURCE_FILE (self->tunebook->abc_source_file));
 
   gtk_source_file_loader_load_async (loader,
                                      G_PRIORITY_DEFAULT,
@@ -748,7 +748,7 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
 {
   GabcWindow *self = user_data;
   //g_print ("gabc_window_save_file_handler\n");
-  if (gtk_source_file_get_location(self->abc_source_file) == NULL)
+  if (gtk_source_file_get_location(self->tunebook->abc_source_file) == NULL)
   {
     gabc_window_save_file_dialog (NULL, NULL, self);
   }
@@ -798,7 +798,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-    gtk_source_file_set_location(self->abc_source_file, file);
+    gtk_source_file_set_location(self->tunebook->abc_source_file, file);
     gabc_window_save_to_abc_file_location (self);
     gabc_window_set_window_title (self);
     //g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
@@ -813,7 +813,7 @@ gabc_window_save_to_abc_file_location(GabcWindow *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
                                     (GtkSourceBuffer *) self->tunebook,
-                                    self->abc_source_file);
+                                    self->tunebook->abc_source_file);
   gtk_source_file_saver_save_async (saver,
                                     G_PRIORITY_DEFAULT,
                                     NULL, NULL, NULL, NULL,
@@ -1028,7 +1028,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gint idx;
   gchar *cmd[20];
 
-  if (gtk_source_file_get_location(self->abc_source_file) == NULL)
+  if (gtk_source_file_get_location(self->tunebook->abc_source_file) == NULL)
   {
     // copy the str so we can free it later.
     working_dir_path = g_strdup (g_getenv ("XDG_CACHE_HOME"));
@@ -1036,7 +1036,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   else
   {
     // gtk_source_file_get_location data is owned by the instance.
-    working_file = gtk_source_file_get_location (self->abc_source_file);
+    working_file = gtk_source_file_get_location (self->tunebook->abc_source_file);
     working_dir_file = g_file_get_parent (working_file);
     working_dir_path = g_file_get_path (working_dir_file);
     g_object_unref (working_dir_file); // also working dir path...

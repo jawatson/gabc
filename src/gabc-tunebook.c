@@ -21,19 +21,7 @@
 #include "gabc-window.h"
 #include "gabc-tunebook.h"
 
-struct _GabcTunebook
-{
-  GtkSourceBuffer               parent_instance;
 
-  /*
-
-   *   EditorBufferMonitor          *monitor;
-  GtkSourceFile                *file;
-  gchar                        *draft_id;
-  const GtkSourceEncoding      *encoding;
-  GError                       *last_error;
-  */
-};
 
 
 gboolean
@@ -46,16 +34,7 @@ gboolean
 gabc_tunebook_is_empty (GabcTunebook *self) {
   GtkTextIter start;
   GtkTextIter end;
-  gboolean is_empty;
   gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER (self), &start, &end);
-  is_empty = gtk_text_iter_equal (&start, &end);
-  if (is_empty) {
-    g_print("gabc_tunebook_is_empty: TRUE\n");
-  }
-  else
-    {
-     g_print("gabc_tunebook_is_empty: FALSE\n");
-    }
-  return is_empty;
+  return gtk_text_iter_equal (&start, &end);
 }
 
