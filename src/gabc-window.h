@@ -36,9 +36,10 @@ G_DECLARE_FINAL_TYPE (GabcWindow, gabc_window, GABC, WINDOW, AdwApplicationWindo
 GabcWindow *
 gabc_window_new (GabcApplication *app);
 
-void
+/*void
 gabc_window_open_file (GabcWindow       *self,
                        GFile            *file);
+*/
 
 void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,

@@ -78,11 +78,6 @@ gabc_window_file_open_cb (GObject      *source_object,
                           gpointer      data);
 
 static void
-gabc_window_open_file_cb (GtkSourceFileLoader *loader,
-                          GAsyncResult        *result,
-                          GabcWindow          *self);
-
-static void
 gabc_window_confirm_cb (GObject      *object,
                           GAsyncResult *result,
                           gpointer      user_data);
@@ -358,7 +353,7 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
     }
   else if (button == 1) // New
     {
-      gabc_window_open_file (self, abc_file);
+      gabc_tunebook_open_file (self->tunebook, abc_file);
     }
   else if (button == 2) // Append
     {
@@ -396,7 +391,7 @@ gabc_window_open_drop_action_dialog (GabcWindow *self, GFile *abc_file)
 static void
 gabc_windows_present_file (GabcWindow *self, GFile *file) {
   if ( gabc_tunebook_is_empty(self->tunebook) ) {
-    gabc_window_open_file (self, file);
+    gabc_tunebook_open_file (self->tunebook, file);
   } else {
     gabc_window_open_drop_action_dialog (self, file);
   }
@@ -626,50 +621,6 @@ gabc_window_set_window_title (GabcWindow *self)
   g_free (title);
   g_free (sub_title);
 
-}
-
-
-static void
-gabc_window_open_file_cb (GtkSourceFileLoader *loader,
-              GAsyncResult        *result,
-              GabcWindow          *self)
-{
-  GtkTextIter start;
-  GError *error = NULL;
-
-  if (!gtk_source_file_loader_load_finish (loader, result, &error))
-  {
-    g_printerr ("Error loading file: %s\n", error->message);
-    g_clear_error (&error);
-  }
-  else
-  {
-    gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->tunebook), &start);
-    gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self->tunebook), &start);
-    gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
-    gabc_window_set_window_title (self);
-    //g_print ("gabc_window_file_open_cb: set self->buffer_is_modified = FALSE\n");
-    self->tunebook->tunebook_is_modified = FALSE;
-  }
-  g_object_unref (loader);
-}
-
-
-void
-gabc_window_open_file (GabcWindow      *self,
-                       GFile           *file)
-{
-
-  GtkSourceFileLoader *loader;
-  gtk_source_file_set_location(GTK_SOURCE_FILE (self->tunebook->abc_source_file), file);
-  loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self->tunebook),
-                                       GTK_SOURCE_FILE (self->tunebook->abc_source_file));
-
-  gtk_source_file_loader_load_async (loader,
-                                     G_PRIORITY_DEFAULT,
-                                     NULL, NULL, NULL, NULL,
-                                     (GAsyncReadyCallback) gabc_window_open_file_cb,
-                                     self);
 }
 
 

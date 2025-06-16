@@ -21,9 +21,50 @@
 #include "gabc-window.h"
 #include "gabc-tunebook.h"
 
+void
+gabc_tunebook_open_file (GabcTunebook      *self,
+                         GFile           *file)
+{
+
+  GtkSourceFileLoader *loader;
+  gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
+  loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self),
+                                       GTK_SOURCE_FILE (self->abc_source_file));
+
+  gtk_source_file_loader_load_async (loader,
+                                     G_PRIORITY_DEFAULT,
+                                     NULL, NULL, NULL, NULL,
+                                     (GAsyncReadyCallback) gabc_tunebook_open_file_cb,
+                                     self);
+}
 
 void
-gabc_tunebook_save_to_abc_file_location(GabcTunebook *self)
+gabc_tunebook_open_file_cb (GtkSourceFileLoader *loader,
+                          GAsyncResult        *result,
+                          GabcTunebook          *self)
+{
+  GtkTextIter start;
+  GError *error = NULL;
+
+  if (!gtk_source_file_loader_load_finish (loader, result, &error))
+  {
+    g_printerr ("Error loading file: %s\n", error->message);
+    g_clear_error (&error);
+  }
+  else
+  {
+    gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
+    gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self), &start);
+    //TODO jw fix the next two lines
+    //gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
+    //gabc_window_set_window_title (self);
+    self->tunebook_is_modified = FALSE;
+  }
+  g_object_unref (loader);
+}
+
+void
+gabc_tunebook_save_file (GabcTunebook *self)
 {
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
                                     (GtkSourceBuffer *) self,
