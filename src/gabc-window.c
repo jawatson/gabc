@@ -275,6 +275,7 @@ gabc_window_init (GabcWindow *self)
   gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
 
+
 static gboolean
 gabc_window_close_request (GtkWindow *window)
 {
@@ -301,8 +302,9 @@ gabc_window_close_request (GtkWindow *window)
 
 }
 
+
 static void
-gabc_window_confirm_cb (GObject      *object,
+gabc_window_confirm_cb (GObject        *object,
                           GAsyncResult *result,
                           gpointer      user_data)
 {
@@ -354,6 +356,9 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
   else if (button == 1) // New
     {
       gabc_tunebook_open_file (self->tunebook, abc_file);
+      //TODO the following two lines should be in a callback
+      gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
+      gabc_window_set_window_title (self);
     }
   else if (button == 2) // Append
     {
@@ -392,11 +397,13 @@ static void
 gabc_windows_present_file (GabcWindow *self, GFile *file) {
   if ( gabc_tunebook_is_empty(self->tunebook) ) {
     gabc_tunebook_open_file (self->tunebook, file);
+    //TODO the following two lines should be in a callback
+    gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
+    gabc_window_set_window_title (self);
   } else {
     gabc_window_open_drop_action_dialog (self, file);
   }
 }
-
 
 
 static gboolean

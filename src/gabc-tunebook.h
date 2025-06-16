@@ -50,16 +50,16 @@ void                      gabc_tunebook_open_file                 (GabcTunebook 
                                                                    GFile         *file);
 
 void                      gabc_tunebook_open_file_cb              (GtkSourceFileLoader *loader,
-                                                                    GAsyncResult        *result,
-                                                                    GabcTunebook          *self);
-
+                                                                   GAsyncResult        *result,
+                                                                   GabcTunebook        *self);
 
 gboolean                  gabc_tunebook_is_empty                  (GabcTunebook *self);
+
 void                      gabc_tunebook_save_file                 (GabcTunebook *self);
 
 void                      gabc_tunebook_save_file_async_cb        (GtkSourceFileSaver *saver,
-                                                                  GAsyncResult       *result,
-                                                                  GabcTunebook         *self);
+                                                                   GAsyncResult       *result,
+                                                                   GabcTunebook       *self);
 
 
 G_END_DECLS

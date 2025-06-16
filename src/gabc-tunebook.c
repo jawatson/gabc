@@ -55,9 +55,6 @@ gabc_tunebook_open_file_cb (GtkSourceFileLoader *loader,
   {
     gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self), &start);
-    //TODO jw fix the next two lines
-    //gtk_widget_grab_focus (GTK_WIDGET (self->main_text_view));
-    //gabc_window_set_window_title (self);
     self->tunebook_is_modified = FALSE;
   }
   g_object_unref (loader);
