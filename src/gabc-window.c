@@ -288,7 +288,7 @@ gabc_window_close_request (GtkWindow *window)
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
   //g_print ("gabc_window_close_request: self->buffer_is_modified is %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
   //g_print ("gabc_window_close_request: gabc_buffer_is_modified is %s\n", gabc_buffer_is_modified ? "TRUE" : "FALSE");
-  if (self->tunebook->tunebook_is_modified || gabc_buffer_is_modified)
+  if (gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified)
     {
       //g_print ("buffer is modified.\n");
       _gabc_save_changes_dialog_run_async (GTK_WINDOW (self),
@@ -778,7 +778,7 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
 
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
-  self->tunebook->tunebook_is_modified =   self->tunebook->tunebook_is_modified || gabc_buffer_is_modified;
+  self->tunebook->tunebook_is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
   abc_file_path = gabc_window_write_buffer_to_file (self);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   if ((ps_file_path != NULL) && (ps_file_path[0] != '\0'))
@@ -871,7 +871,7 @@ gabc_window_write_buffer_to_file (GabcWindow *self)
   gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
   text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->tunebook), &start, &end, FALSE);
 
-  self->tunebook->tunebook_is_modified = self->tunebook->tunebook_is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->tunebook));
+  self->tunebook->tunebook_is_modified = gabc_tunebook_is_modified(self->tunebook) || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->tunebook));
   //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
 
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->tunebook), FALSE);

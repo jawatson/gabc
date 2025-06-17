@@ -117,10 +117,16 @@ gabc_tunebook_save_file_async_cb (GtkSourceFileSaver *saver,
 
 
 gboolean
-gabc_tunebook_is_empty (GabcTunebook *self) {
+gabc_tunebook_is_empty (GabcTunebook *self)
+{
   GtkTextIter start;
   GtkTextIter end;
   gtk_text_buffer_get_bounds (GTK_TEXT_BUFFER (self), &start, &end);
   return gtk_text_iter_equal (&start, &end);
 }
 
+gboolean
+gabc_tunebook_is_modified (GabcTunebook *self)
+{
+ return self->tunebook_is_modified;
+}

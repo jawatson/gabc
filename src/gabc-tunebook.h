@@ -45,6 +45,8 @@ void                      gabc_tunebook_open_file_cb              (GtkSourceFile
 
 gboolean                  gabc_tunebook_is_empty                  (GabcTunebook *self);
 
+gboolean                  gabc_tunebook_is_modified               (GabcTunebook *self);
+
 void                      gabc_tunebook_save_file                 (GabcTunebook *self);
 
 void                      gabc_tunebook_save_file_async_cb        (GtkSourceFileSaver *saver,
