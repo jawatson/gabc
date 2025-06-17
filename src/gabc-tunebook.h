@@ -33,18 +33,8 @@ struct _GabcTunebook
   GtkSourceBuffer               parent_instance;
   GtkSourceFile                *abc_source_file;
   gboolean                      tunebook_is_modified;
-  /*
-
-   *   EditorBufferMonitor          *monitor;
-  GtkSourceFile                *file;
-  gchar                        *draft_id;
-  const GtkSourceEncoding      *encoding;
-  GError                       *last_error;
-  */
 };
 
-
-//GFile                    *gabc_tunebook_get_file                (GabcTunebook  *self);
 
 void                      gabc_tunebook_open_file                 (GabcTunebook  *self,
                                                                    GFile         *file);

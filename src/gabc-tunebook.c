@@ -21,6 +21,28 @@
 #include "gabc-window.h"
 #include "gabc-tunebook.h"
 
+// Define the structure here
+//
+G_DEFINE_TYPE (GabcTunebook, gabc_tunebook, GTK_SOURCE_TYPE_BUFFER)
+
+
+static void
+gabc_tunebook_class_init (GabcTunebookClass *klass)
+{
+  g_print ("In the class init\n");
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  GtkTextBufferClass *buffer_class = GTK_TEXT_BUFFER_CLASS (klass);
+
+}
+
+
+static void
+gabc_tunebook_init (GabcTunebook *self)
+{
+  g_print ("in the init\n");
+}
+
+
 void
 gabc_tunebook_open_file (GabcTunebook      *self,
                          GFile           *file)
