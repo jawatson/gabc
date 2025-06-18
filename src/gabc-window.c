@@ -120,9 +120,6 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
                         gpointer       user_data);
 
 gchar *
-gabc_window_write_buffer_to_file (GabcWindow  *self);
-
-gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self);
 
 static void
@@ -519,7 +516,7 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
                                                         NULL);
   if (midi_file) {
     midi_file_path = g_file_get_path(midi_file);
-    abc_file_path = gabc_window_write_buffer_to_file (self);
+    abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
 
     gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
     if (err != NULL)
@@ -692,7 +689,7 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
     gabc_tunebook_save_file (self->tunebook);
     gabc_window_set_window_title (self);
     //g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
-    self->tunebook->tunebook_is_modified = FALSE;
+    self->tunebook->is_modified = FALSE;
   }
   g_object_unref (file_dialog);
 }
@@ -718,8 +715,9 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
 
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
-  self->tunebook->tunebook_is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
-  abc_file_path = gabc_window_write_buffer_to_file (self);
+  self->tunebook->is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
+  //TODO insert the text locking here
+  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   if ((ps_file_path != NULL) && (ps_file_path[0] != '\0'))
     {
@@ -749,7 +747,7 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
 
   //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
 
-  abc_file_path = gabc_window_write_buffer_to_file (self);
+  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
 
   midi_file_path = gabc_window_set_file_extension (abc_file_path, (gchar*)("mid"));
   gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
@@ -796,40 +794,6 @@ gabc_window_set_midi_program (gchar * file_content, gint midi_program)
   return preprocessed_text;
 }
 
-
-gchar *
-gabc_window_write_buffer_to_file (GabcWindow *self)
-{
-  GtkTextIter start;
-  GtkTextIter end;
-  char *text;
-  gchar *file_path;
-  gint midi_program;
-
-  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
-  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self->tunebook), &start);
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
-  text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self->tunebook), &start, &end, FALSE);
-
-  self->tunebook->tunebook_is_modified = gabc_tunebook_is_modified(self->tunebook) || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self->tunebook));
-  //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
-
-  gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self->tunebook), FALSE);
-  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
-
-  // Preprocess the file here
-  midi_program = g_settings_get_enum (self->settings, "abc2midi-midi-program");
-  if (midi_program < 128)
-    {
-    text = gabc_window_set_midi_program (text, midi_program);
-    }
-
-  file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc.abc", NULL);
-  g_file_set_contents(file_path, text, -1, NULL);
-
-  g_free (text);
-  return file_path;
-}
 
 gchar *
 gabc_window_set_file_extension (gchar *file_path, gchar *extension)

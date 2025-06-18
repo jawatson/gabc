@@ -77,7 +77,7 @@ gabc_tunebook_open_file_cb (GtkSourceFileLoader *loader,
   {
     gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self), &start);
-    self->tunebook_is_modified = FALSE;
+    self->is_modified = FALSE;
   }
   g_object_unref (loader);
 }
@@ -169,9 +169,46 @@ gabc_tunebook_save_file_async_cb (GtkSourceFileSaver *saver,
   else
   {
     // ("gabc_window_save_file_async_cb: Setting self->buffer_is_modified = FALSE\n");
-    self->tunebook_is_modified = FALSE;
+    self->is_modified = FALSE;
   }
   g_object_unref (saver);
+}
+
+gchar*
+gabc_tunebook_write_to_scratch_file (GabcTunebook  *self)
+{
+  GtkTextIter start;
+  GtkTextIter end;
+  char *text;
+  gchar *file_path;
+  gint midi_program; //TODO
+
+  //TODO move this line
+  //gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
+  gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self), &end);
+  text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self), &start, &end, FALSE);
+
+  self->is_modified = self->is_modified || gtk_text_buffer_get_modified (GTK_TEXT_BUFFER (self));
+  //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
+
+  gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self), FALSE);
+  //TODO relocate this one as well
+  //gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
+
+  // Preprocess the file here
+  /*
+  midi_program = g_settings_get_enum (self->settings, "abc2midi-midi-program");
+  if (midi_program < 128)
+    {
+    text = gabc_window_set_midi_program (text, midi_program);
+    }
+  */
+  file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc_scratch.abc", NULL);
+  g_file_set_contents(file_path, text, -1, NULL);
+
+  g_free (text);
+  return file_path;
 }
 
 
@@ -187,5 +224,5 @@ gabc_tunebook_is_empty (GabcTunebook *self)
 gboolean
 gabc_tunebook_is_modified (GabcTunebook *self)
 {
- return self->tunebook_is_modified;
+ return self->is_modified;
 }

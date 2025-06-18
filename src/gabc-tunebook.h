@@ -32,7 +32,7 @@ struct _GabcTunebook
 {
   GtkSourceBuffer               parent_instance;
   GtkSourceFile                *abc_source_file;
-  gboolean                      tunebook_is_modified;
+  gboolean                      is_modified;
 };
 
 
@@ -59,6 +59,8 @@ void                      gabc_tunebook_save_file                 (GabcTunebook 
 void                      gabc_tunebook_save_file_async_cb        (GtkSourceFileSaver *saver,
                                                                    GAsyncResult       *result,
                                                                    GabcTunebook       *self);
+
+gchar *                   gabc_tunebook_write_to_scratch_file     (GabcTunebook  *self);
 
 
 G_END_DECLS
