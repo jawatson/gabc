@@ -149,15 +149,18 @@ gabc_save_changes_dialog_save_handler (AdwAlertDialog *dialog,
                                      gpointer  user_data)
 {
   GabcWindow *parent;
+  GabcTunebook *tunebook;
   GTask *task;
   parent = (GabcWindow *)user_data;
   g_assert (GABC_IS_WINDOW (parent));
+
+  tunebook = gabc_window_get_current_tunebook (parent);
 
   task = g_object_get_data (G_OBJECT (dialog), "TASK");
   g_object_ref (task);
   g_assert (G_IS_TASK (task));
 
-  if (gtk_source_file_get_location(gabc_tunebook_get_abc_source_file (parent->tunebook)) == NULL)
+  if (gtk_source_file_get_location(gabc_tunebook_get_abc_source_file (tunebook)) == NULL)
   {
     g_print (" save file dialog");
     gabc_save_changes_dialog_show_file_save_dialog (parent, task);
@@ -211,7 +214,10 @@ gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
                                  gpointer       user_data)
 {
   GTask *task;
+  GabcTunebook *tunebook;
   GabcWindow *self = user_data;
+
+  tunebook = gabc_window_get_current_tunebook (self);
 
   task = g_object_get_data (G_OBJECT (file_dialog), "TASK");
   g_object_ref (task);
@@ -221,7 +227,7 @@ gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
                                                         res,
                                                         NULL);
   if (file) {
-    gtk_source_file_set_location(gabc_tunebook_get_abc_source_file(self->tunebook), file);
+    gtk_source_file_set_location(gabc_tunebook_get_abc_source_file(tunebook), file);
     g_print ("Save the file now\n");
     gabc_save_changes_dialog_save (self, task);
   }
@@ -240,9 +246,13 @@ gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
 static void
 gabc_save_changes_dialog_save (GabcWindow *self, GTask *task)
 {
+  GabcTunebook *tunebook;
+
+  tunebook = gabc_window_get_current_tunebook(self);
+
   GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                  (GtkSourceBuffer *) self->tunebook,
-                                  gabc_tunebook_get_abc_source_file(self->tunebook));
+                                  (GtkSourceBuffer *) tunebook,
+                                  gabc_tunebook_get_abc_source_file(tunebook));
 
   g_assert (G_IS_TASK (task));
 

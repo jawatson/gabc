@@ -36,6 +36,9 @@ G_DECLARE_FINAL_TYPE (GabcWindow, gabc_window, GABC, WINDOW, AdwApplicationWindo
 GabcWindow *
 gabc_window_new (GabcApplication *app);
 
+GabcTunebook *
+gabc_window_get_current_tunebook (GabcWindow *self);
+
 /*void
 gabc_window_open_file (GabcWindow       *self,
                        GFile            *file);
@@ -45,18 +48,7 @@ void
 gabc_window_append_file_content_to_buffer (GabcWindow       *self,
                                            GFile            *file);
 
-struct _GabcWindow
-{
-	AdwApplicationWindow  parent_instance;
 
-        GSettings           *settings;
-
-        AdwWindowTitle      *window_title;
-	GtkSourceView       *main_text_view;
-        GabcTunebook        *tunebook;
-
-        GabcLogWindow       *log_window;
-};
 
 G_END_DECLS
 

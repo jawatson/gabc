@@ -25,6 +25,18 @@
 #include "gabc-save-changes-dialog-private.h"
 #include "gabc-file-filters.h"
 
+struct _GabcWindow
+{
+	AdwApplicationWindow  parent_instance;
+
+        GSettings           *settings;
+
+        AdwWindowTitle      *window_title;
+	GtkSourceView       *main_text_view;
+        GabcTunebook        *tunebook;
+
+        GabcLogWindow       *log_window;
+};
 
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
@@ -1042,4 +1054,8 @@ gabc_window_open_log_dialog (GSimpleAction *action,
   gtk_widget_set_visible (GTK_WIDGET (parent->log_window), true);
 }
 
-
+GabcTunebook *
+gabc_window_get_current_tunebook (GabcWindow *self)
+{
+  return self->tunebook;
+}
