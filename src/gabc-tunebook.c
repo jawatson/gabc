@@ -266,5 +266,9 @@ gabc_tunebook_get_abc_source_file (GabcTunebook *self)
   return self->abc_source_file;
 }
 
-
+void gabc_tunebook_set_abc_source_file (GabcTunebook *self, GFile *file)
+{
+  g_print("setting the source file\n");
+  gtk_source_file_set_location (self->abc_source_file, file);
+}
 

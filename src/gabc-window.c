@@ -701,12 +701,17 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
                                  GAsyncResult  *res,
                                  gpointer       user_data)
 {
+  GabcTunebook *tunebook;
   GabcWindow *self = user_data;
-  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+
+  tunebook = self->tunebook;
+
+  GFile* file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
                                                         NULL);
   if (file) {
-    gtk_source_file_set_location(self->tunebook->abc_source_file, file);
+    //gtk_source_file_set_location(self->tunebook->abc_source_file, file);
+    gabc_tunebook_set_abc_source_file (tunebook, file);
     gabc_tunebook_save_file (self->tunebook);
     gabc_window_set_window_title (self);
     //g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
