@@ -36,7 +36,8 @@ open (GApplication  *application,
 
   window = GABC_WINDOW (gabc_window_new (GABC_APPLICATION (application)));
 
-  gabc_tunebook_open_file(window->tunebook, files[0]);
+  //TODO
+  // gabc_tunebook_open_file(window->tunebook, files[0]);
 
   gtk_window_present (GTK_WINDOW (window));
 }

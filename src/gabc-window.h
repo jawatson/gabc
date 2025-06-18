@@ -57,9 +57,6 @@ struct _GabcWindow
 
         GabcLogWindow       *log_window;
 };
-/*
-G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
-*/
 
 G_END_DECLS
 

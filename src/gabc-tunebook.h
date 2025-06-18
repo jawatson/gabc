@@ -60,7 +60,8 @@ void                      gabc_tunebook_save_file_async_cb        (GtkSourceFile
                                                                    GAsyncResult       *result,
                                                                    GabcTunebook       *self);
 
-gchar *                   gabc_tunebook_write_to_scratch_file     (GabcTunebook  *self);
+gchar *                   gabc_tunebook_write_to_scratch_file     (GabcTunebook  *self,
+                                                                   GSettings *settings);
 
 
 G_END_DECLS

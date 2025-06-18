@@ -25,6 +25,7 @@
 //
 G_DEFINE_TYPE (GabcTunebook, gabc_tunebook, GTK_SOURCE_TYPE_BUFFER)
 
+static gchar * gabc_tunebook_set_midi_program (gchar * file_content, gint midi_program);
 
 static void
 gabc_tunebook_class_init (GabcTunebookClass *klass)
@@ -175,7 +176,7 @@ gabc_tunebook_save_file_async_cb (GtkSourceFileSaver *saver,
 }
 
 gchar*
-gabc_tunebook_write_to_scratch_file (GabcTunebook  *self)
+gabc_tunebook_write_to_scratch_file (GabcTunebook  *self, GSettings *settings)
 {
   GtkTextIter start;
   GtkTextIter end;
@@ -183,8 +184,6 @@ gabc_tunebook_write_to_scratch_file (GabcTunebook  *self)
   gchar *file_path;
   gint midi_program; //TODO
 
-  //TODO move this line
-  //gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
   gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self), &end);
   text = gtk_text_buffer_get_text (GTK_TEXT_BUFFER (self), &start, &end, FALSE);
@@ -193,22 +192,48 @@ gabc_tunebook_write_to_scratch_file (GabcTunebook  *self)
   //g_print("gabc_window_write_buffer_to_file set buffer_is_modified to %s\n", self->buffer_is_modified ? "TRUE" : "FALSE");
 
   gtk_text_buffer_set_modified (GTK_TEXT_BUFFER (self), FALSE);
-  //TODO relocate this one as well
-  //gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
   // Preprocess the file here
-  /*
-  midi_program = g_settings_get_enum (self->settings, "abc2midi-midi-program");
+  midi_program = g_settings_get_enum (settings, "abc2midi-midi-program");
   if (midi_program < 128)
     {
-    text = gabc_window_set_midi_program (text, midi_program);
+    text = gabc_tunebook_set_midi_program (text, midi_program);
     }
-  */
+
   file_path = g_build_filename (g_getenv("XDG_CACHE_HOME"), "gabc_scratch.abc", NULL);
   g_file_set_contents(file_path, text, -1, NULL);
 
   g_free (text);
   return file_path;
+}
+
+
+static gchar *
+gabc_tunebook_set_midi_program (gchar * file_content, gint midi_program)
+{
+  gchar *preprocessed_text;
+  GError *error = NULL;
+  GRegex *end_of_header_regex;
+  gchar *program_str = g_strdup_printf ("\\0\\n%%%%MIDI program %d", midi_program);
+
+  end_of_header_regex = g_regex_new ("^K:.*$", G_REGEX_MULTILINE, 0, &error);
+
+  if ( error )
+  {
+    //gabc_log_window_append_to_log (self->log_window, error->message);
+    g_clear_error (&error);
+  }
+
+  preprocessed_text = g_regex_replace (end_of_header_regex,
+                          file_content,
+                          -1,
+                          0,
+                          program_str,
+                          G_REGEX_MATCH_DEFAULT,
+                          NULL);
+  g_free (program_str);
+  g_regex_unref (end_of_header_regex);
+  return preprocessed_text;
 }
 
 
@@ -226,3 +251,4 @@ gabc_tunebook_is_modified (GabcTunebook *self)
 {
  return self->is_modified;
 }
+

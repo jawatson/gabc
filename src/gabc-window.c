@@ -25,6 +25,7 @@
 #include "gabc-save-changes-dialog-private.h"
 #include "gabc-file-filters.h"
 
+
 G_DEFINE_FINAL_TYPE (GabcWindow, gabc_window, ADW_TYPE_APPLICATION_WINDOW)
 
 typedef struct {
@@ -516,7 +517,10 @@ gabc_window_save_midi_file_dialog_cb (GObject       *file_dialog,
                                                         NULL);
   if (midi_file) {
     midi_file_path = g_file_get_path(midi_file);
-    abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
+
+    gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
+    abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook, self->settings);
+    gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
     gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
     if (err != NULL)
@@ -716,8 +720,11 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
 
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
   self->tunebook->is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
-  //TODO insert the text locking here
-  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
+
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
+  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook, self->settings);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
+
   ps_file_path = gabc_window_write_ps_file (abc_file_path, self);
   if ((ps_file_path != NULL) && (ps_file_path[0] != '\0'))
     {
@@ -747,7 +754,9 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
 
   //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
 
-  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
+  abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook, self->settings);
+  gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
 
   midi_file_path = gabc_window_set_file_extension (abc_file_path, (gchar*)("mid"));
   gabc_window_write_midi_file (abc_file_path, midi_file_path, self, &err);
@@ -764,34 +773,6 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
 
   g_free (abc_file_path);
   g_free (midi_file_path);
-}
-
-static gchar *
-gabc_window_set_midi_program (gchar * file_content, gint midi_program)
-{
-  gchar *preprocessed_text;
-  GError *error = NULL;
-  GRegex *end_of_header_regex;
-  gchar *program_str = g_strdup_printf ("\\0\\n%%%%MIDI program %d", midi_program);
-
-  end_of_header_regex = g_regex_new ("^K:.*$", G_REGEX_MULTILINE, 0, &error);
-
-  if ( error )
-  {
-    //gabc_log_window_append_to_log (self->log_window, error->message);
-    g_clear_error (&error);
-  }
-
-  preprocessed_text = g_regex_replace (end_of_header_regex,
-                          file_content,
-                          -1,
-                          0,
-                          program_str,
-                          G_REGEX_MATCH_DEFAULT,
-                          NULL);
-  g_free (program_str);
-  g_regex_unref (end_of_header_regex);
-  return preprocessed_text;
 }
 
 
