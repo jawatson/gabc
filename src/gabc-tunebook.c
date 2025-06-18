@@ -252,3 +252,9 @@ gabc_tunebook_is_modified (GabcTunebook *self)
  return self->is_modified;
 }
 
+GtkSourceFile*
+gabc_tunebook_get_abc_source_file (GabcTunebook *self)
+{
+  return self->abc_source_file;
+}
+

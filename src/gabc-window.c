@@ -601,8 +601,11 @@ gabc_window_set_window_title (GabcWindow *self)
   GFile *home_file;
   gchar *title;
   gchar *sub_title;
+  GabcTunebook *tunebook;
 
-  source_file = gtk_source_file_get_location(self->tunebook->abc_source_file);
+  tunebook = self->tunebook;
+
+  source_file = gtk_source_file_get_location(gabc_tunebook_get_abc_source_file(tunebook));
 
   if (G_IS_FILE (source_file))
     {
@@ -638,8 +641,11 @@ gabc_window_save_file_handler (GSimpleAction *action G_GNUC_UNUSED,
                                gpointer       user_data)
 {
   GabcWindow *self = user_data;
-  //g_print ("gabc_window_save_file_handler\n");
-  if (gtk_source_file_get_location(self->tunebook->abc_source_file) == NULL)
+  GabcTunebook *tunebook;
+
+  tunebook = self->tunebook;
+  g_print ("gabc_window_save_file_handler\n");
+  if (gtk_source_file_get_location(gabc_tunebook_get_abc_source_file(tunebook)) == NULL)
   {
     gabc_window_save_file_dialog (NULL, NULL, self);
   }
@@ -837,7 +843,7 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   else
   {
     // gtk_source_file_get_location data is owned by the instance.
-    working_file = gtk_source_file_get_location (self->tunebook->abc_source_file);
+    working_file = gtk_source_file_get_location (gabc_tunebook_get_abc_source_file (self->tunebook));
     working_dir_file = g_file_get_parent (working_file);
     working_dir_path = g_file_get_path (working_dir_file);
     g_object_unref (working_dir_file); // also working dir path...
