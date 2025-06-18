@@ -252,9 +252,19 @@ gabc_tunebook_is_modified (GabcTunebook *self)
  return self->is_modified;
 }
 
+void
+gabc_tunebook_clear (GabcTunebook *self)
+{
+  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self), "", -1);
+  gtk_source_file_set_location (self->abc_source_file, NULL);
+  self->is_modified = FALSE;
+}
+
 GtkSourceFile*
 gabc_tunebook_get_abc_source_file (GabcTunebook *self)
 {
   return self->abc_source_file;
 }
+
+
 

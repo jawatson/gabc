@@ -473,8 +473,7 @@ gabc_window_clear_buffer (GSimpleAction *action G_GNUC_UNUSED,
                           gpointer       user_data)
 {
   GabcWindow *self = GABC_WINDOW (user_data);
-  gtk_text_buffer_set_text (GTK_TEXT_BUFFER (self->tunebook), "", -1);
-  gtk_source_file_set_location (self->tunebook->abc_source_file, NULL);
+  gabc_tunebook_clear(self->tunebook);
   gabc_window_set_window_title (self);
 }
 
