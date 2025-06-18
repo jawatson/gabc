@@ -43,6 +43,13 @@ void                      gabc_tunebook_open_file_cb              (GtkSourceFile
                                                                    GAsyncResult        *result,
                                                                    GabcTunebook        *self);
 
+void                      gabc_tunebook_append_file               (GabcTunebook        *self,
+                                                                   GFile               *file);
+
+void                      gabc_tunebook_append_file_cb            (GObject       *source_object,
+                                                                   GAsyncResult  *result,
+                                                                   GabcTunebook    *self);
+
 gboolean                  gabc_tunebook_is_empty                  (GabcTunebook *self);
 
 gboolean                  gabc_tunebook_is_modified               (GabcTunebook *self);

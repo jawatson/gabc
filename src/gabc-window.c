@@ -362,7 +362,7 @@ gabc_window_on_drop_choose (GObject *source_object, GAsyncResult *res, gpointer 
     }
   else if (button == 2) // Append
     {
-      gabc_window_append_file_content_to_buffer (self, abc_file);
+      gabc_tunebook_append_file (self->tunebook, abc_file);
     }
   else
     g_assert_not_reached();
@@ -628,66 +628,6 @@ gabc_window_set_window_title (GabcWindow *self)
   g_free (title);
   g_free (sub_title);
 
-}
-
-
-static void
-open_append_file_cb  (GObject       *source_object,
-                      GAsyncResult  *result,
-                      GabcWindow    *self)
-{
-  GFile *file = G_FILE (source_object);
-  GtkTextIter end;
-
-  g_autofree char *contents = NULL;
-  gsize length = 0;
-
-  g_autoptr (GError) error = NULL;
-
-  g_file_load_contents_finish (file,
-                               result,
-                               &contents,
-                               &length,
-                               NULL,
-                               &error);
-
-  if (error != NULL)
-    {
-      gabc_log_window_append_to_log (self->log_window, error->message);
-      g_clear_error (&error);
-      return;
-    }
-
-  if (!g_utf8_validate (contents, length, NULL))
-    {
-      gchar *err_msg = g_strdup_printf ("Unable to load the contents of %s.  File is not encoded with UTF-8\n", g_file_peek_path (file));
-      gabc_log_window_append_to_log (self->log_window, err_msg);
-      g_free (err_msg);
-      return;
-    }
-
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
-
-  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->tunebook), &end, "\n\n", -1);
-
-  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self->tunebook), &end);
-
-  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self->tunebook),
-                         &end,
-                         contents,
-                         -1);
-  g_object_unref (file);
-}
-
-
-void
-gabc_window_append_file_content_to_buffer (GabcWindow       *self,
-                                           GFile            *file)
-{
-  g_file_load_contents_async (file,
-                              NULL,
-                              (GAsyncReadyCallback) open_append_file_cb,
-                              self);
 }
 
 
@@ -1150,4 +1090,5 @@ gabc_window_open_log_dialog (GSimpleAction *action,
   g_assert (GABC_IS_WINDOW (parent));
   gtk_widget_set_visible (GTK_WIDGET (parent->log_window), true);
 }
+
 

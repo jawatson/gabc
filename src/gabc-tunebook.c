@@ -30,8 +30,8 @@ static void
 gabc_tunebook_class_init (GabcTunebookClass *klass)
 {
   g_print ("In the class init\n");
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GtkTextBufferClass *buffer_class = GTK_TEXT_BUFFER_CLASS (klass);
+  //GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  //GtkTextBufferClass *buffer_class = GTK_TEXT_BUFFER_CLASS (klass);
 
 }
 
@@ -81,6 +81,65 @@ gabc_tunebook_open_file_cb (GtkSourceFileLoader *loader,
   }
   g_object_unref (loader);
 }
+
+void
+gabc_tunebook_append_file (GabcTunebook       *self,
+                           GFile            *file)
+{
+  g_file_load_contents_async (file,
+                              NULL,
+                              (GAsyncReadyCallback) gabc_tunebook_append_file_cb,
+                              self);
+}
+
+void
+gabc_tunebook_append_file_cb  (GObject       *source_object,
+                                GAsyncResult  *result,
+                                GabcTunebook    *self)
+{
+  GFile *file = G_FILE (source_object);
+  GtkTextIter end;
+
+  g_autofree char *contents = NULL;
+  gsize length = 0;
+
+  g_autoptr (GError) error = NULL;
+
+  g_file_load_contents_finish (file,
+                               result,
+                               &contents,
+                               &length,
+                               NULL,
+                               &error);
+  /*
+  if (error != NULL)
+    {
+      gabc_log_window_append_to_log (self->log_window, error->message);
+      g_clear_error (&error);
+      return;
+    }
+
+  if (!g_utf8_validate (contents, length, NULL))
+    {
+      gchar *err_msg = g_strdup_printf ("Unable to load the contents of %s.  File is not encoded with UTF-8\n", g_file_peek_path (file));
+      gabc_log_window_append_to_log (self->log_window, err_msg);
+      g_free (err_msg);
+      return;
+    }*/
+
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self), &end);
+
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self), &end, "\n\n", -1);
+
+  gtk_text_buffer_get_end_iter (GTK_TEXT_BUFFER (self), &end);
+
+  gtk_text_buffer_insert(GTK_TEXT_BUFFER (self),
+                         &end,
+                         contents,
+                         -1);
+  g_object_unref (file);
+}
+
 
 void
 gabc_tunebook_save_file (GabcTunebook *self)
