@@ -65,7 +65,7 @@ gabc_log_window_class_init (GabcLogWindowClass *klass)
   gtk_widget_class_bind_template_child (widget_class,
                                         GabcLogWindow,
                                         log_buffer);
-   gtk_widget_class_bind_template_child (widget_class,
+  gtk_widget_class_bind_template_child (widget_class,
                                         GabcLogWindow,
                                         log_clear_button);
 

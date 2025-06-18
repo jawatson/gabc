@@ -222,9 +222,9 @@ dark_mode_to_adw_color_scheme (GValue   *value,
 static void
 gabc_window_init (GabcWindow *self)
 {
-  GtkSourceLanguageManager *lm;
-  GtkSourceLanguage *language;
-  const gchar *id;
+  //GtkSourceLanguageManager *lm;
+  //GtkSourceLanguage *language;
+  // gchar *id;
 
   AdwStyleManager *sm;
   GtkDropTarget *target;
@@ -262,13 +262,17 @@ gabc_window_init (GabcWindow *self)
                               NULL,
                               NULL);
 
-  self->tunebook->abc_source_file = gtk_source_file_new ();
+
+  // self->tunebook->abc_source_file = gtk_source_file_new ();
+  self->tunebook = gabc_tunebook_new();
+  gtk_text_view_set_buffer (GTK_TEXT_VIEW(self->main_text_view), (GtkTextBuffer *) self->tunebook);
 
   gtk_source_buffer_set_highlight_syntax ((GtkSourceBuffer *) self->tunebook, true);
   gtk_source_view_set_show_line_numbers (GTK_SOURCE_VIEW(self->main_text_view), true);
 
   self->log_window = gabc_log_window_new ((AdwApplicationWindow *) self);
 
+  /*
   lm = gtk_source_language_manager_get_default ();
   id = "abc";
   language = gtk_source_language_manager_get_language (lm, id);
@@ -282,6 +286,7 @@ gabc_window_init (GabcWindow *self)
     // TODO move this to the tunebook class.
     gtk_source_buffer_set_language ((GtkSourceBuffer *) self->tunebook, language);
   }
+   */
   gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
 
@@ -455,7 +460,7 @@ gabc_window_dispose (GObject *object)
 
   g_clear_object (&win->settings);
 
-  g_clear_object (&win->tunebook->abc_source_file);
+  g_clear_object (&win->tunebook);
 
   G_OBJECT_CLASS (gabc_window_parent_class)->dispose (object);
 }
@@ -703,19 +708,16 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
 {
   GabcTunebook *tunebook;
   GabcWindow *self = user_data;
-
   tunebook = self->tunebook;
 
-  GFile* file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
-                                                        res,
-                                                        NULL);
-  if (file) {
-    //gtk_source_file_set_location(self->tunebook->abc_source_file, file);
-    gabc_tunebook_set_abc_source_file (tunebook, file);
+  GFile* save_file;
+
+  save_file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog), res, NULL);
+  if (save_file) {
+    gabc_tunebook_set_abc_source_file (tunebook, save_file);
     gabc_tunebook_save_file (self->tunebook);
     gabc_window_set_window_title (self);
     //g_print ("gabc_window_file_save_dialog_cb: set self->buffer_is_modified = FALSE\n");
-    self->tunebook->is_modified = FALSE;
   }
   g_object_unref (file_dialog);
 }

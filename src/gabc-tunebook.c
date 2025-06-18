@@ -23,9 +23,24 @@
 
 // Define the structure here
 //
+
+
+
+
 G_DEFINE_TYPE (GabcTunebook, gabc_tunebook, GTK_SOURCE_TYPE_BUFFER)
 
 static gchar * gabc_tunebook_set_midi_program (gchar * file_content, gint midi_program);
+
+GabcTunebook*
+gabc_tunebook_new (void)
+{
+  GabcTunebook *self;
+
+  self = g_object_new (GABC_TYPE_TUNEBOOK, NULL);
+
+  return g_steal_pointer (&self);
+
+}
 
 static void
 gabc_tunebook_class_init (GabcTunebookClass *klass)
@@ -33,14 +48,33 @@ gabc_tunebook_class_init (GabcTunebookClass *klass)
   g_print ("In the class init\n");
   //GObjectClass *object_class = G_OBJECT_CLASS (klass);
   //GtkTextBufferClass *buffer_class = GTK_TEXT_BUFFER_CLASS (klass);
-
 }
 
 
 static void
 gabc_tunebook_init (GabcTunebook *self)
 {
+  GtkSourceLanguageManager *lm;
+  GtkSourceLanguage *language;
+  gchar *id;
+
   g_print ("in the init\n");
+
+  self->abc_source_file = gtk_source_file_new ();
+
+  lm = gtk_source_language_manager_get_default ();
+  id = "abc";
+  language = gtk_source_language_manager_get_language (lm, id);
+  if (language == NULL)
+  {
+    g_print ("No language found for language id '%s'\n", id);
+  }
+  else
+  {
+    //TODO Why does the following line cause so many warnings?
+    // TODO move this to the tunebook class.
+    gtk_source_buffer_set_language ((GtkSourceBuffer *) self, language);
+  }
 }
 
 
@@ -48,9 +82,12 @@ void
 gabc_tunebook_open_file (GabcTunebook      *self,
                          GFile           *file)
 {
-
+  g_print ("gabc_tunebook_open_file\n");
+  g_print ("File: %s\n",g_file_get_path(file));
   GtkSourceFileLoader *loader;
+
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
+  g_print ("File: %s",g_file_get_path( gtk_source_file_get_location (self->abc_source_file)));
   loader = gtk_source_file_loader_new (GTK_SOURCE_BUFFER (self),
                                        GTK_SOURCE_FILE (self->abc_source_file));
 
@@ -71,11 +108,13 @@ gabc_tunebook_open_file_cb (GtkSourceFileLoader *loader,
 
   if (!gtk_source_file_loader_load_finish (loader, result, &error))
   {
+    g_print ("Error\n");
     g_printerr ("Error loading file: %s\n", error->message);
     g_clear_error (&error);
   }
   else
   {
+    g_print ("gabc_tunebook_open_file_cb: No error");
     gtk_text_buffer_get_start_iter (GTK_TEXT_BUFFER (self), &start);
     gtk_text_buffer_place_cursor (GTK_TEXT_BUFFER (self), &start);
     self->is_modified = FALSE;
@@ -246,11 +285,15 @@ gabc_tunebook_is_empty (GabcTunebook *self)
   return gtk_text_iter_equal (&start, &end);
 }
 
+
 gboolean
 gabc_tunebook_is_modified (GabcTunebook *self)
 {
- return self->is_modified;
+  gboolean buffer_is_modified;
+  buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self);
+  return self->is_modified || buffer_is_modified;
 }
+
 
 void
 gabc_tunebook_clear (GabcTunebook *self)
@@ -260,13 +303,16 @@ gabc_tunebook_clear (GabcTunebook *self)
   self->is_modified = FALSE;
 }
 
+
 GtkSourceFile*
 gabc_tunebook_get_abc_source_file (GabcTunebook *self)
 {
   return self->abc_source_file;
 }
 
-void gabc_tunebook_set_abc_source_file (GabcTunebook *self, GFile *file)
+
+void
+gabc_tunebook_set_abc_source_file (GabcTunebook *self, GFile *file)
 {
   g_print("setting the source file\n");
   gtk_source_file_set_location (self->abc_source_file, file);

@@ -24,10 +24,6 @@
 
 G_BEGIN_DECLS
 
-#define GABC_TYPE_TUNEBOOK (gabc_tunebook_get_type())
-
-G_DECLARE_FINAL_TYPE (GabcTunebook, gabc_tunebook, GABC, TUNEBOOK, GtkSourceBuffer)
-
 struct _GabcTunebook
 {
   GtkSourceBuffer               parent_instance;
@@ -35,6 +31,12 @@ struct _GabcTunebook
   gboolean                      is_modified;
 };
 
+
+#define GABC_TYPE_TUNEBOOK (gabc_tunebook_get_type())
+
+G_DECLARE_FINAL_TYPE (GabcTunebook, gabc_tunebook, GABC, TUNEBOOK, GtkSourceBuffer)
+
+GabcTunebook             *gabc_tunebook_new                       (void);
 
 void                      gabc_tunebook_open_file                 (GabcTunebook  *self,
                                                                    GFile         *file);
