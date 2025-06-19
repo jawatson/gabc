@@ -321,15 +321,16 @@ gabc_tunebook_get_abc_source_file (GabcTunebook *self)
   */
 
   g_print ("gabc_tunebook_get_abc_source_file:\n");
-  g_print ("%s\n", g_file_get_path (gtk_source_file_get_location (self->abc_source_file)));
+  //g_print ("%s\n", g_file_get_path (gtk_source_file_get_location (self->abc_source_file)));
   return self->abc_source_file;
 }
 
 
 void
-gabc_tunebook_set_abc_source_file (GabcTunebook *self, GFile *file)
+gabc_tunebook_set_abc_source_file (GabcTunebook *self, GFile *abc_src_file)
 {
   g_print("setting the source file\n");
-  gtk_source_file_set_location (self->abc_source_file, file);
+  g_assert (G_IS_FILE (abc_src_file));
+  gtk_source_file_set_location (self->abc_source_file, abc_src_file);
 }
 

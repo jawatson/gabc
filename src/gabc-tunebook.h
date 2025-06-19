@@ -62,7 +62,7 @@ gchar *                   gabc_tunebook_write_to_scratch_file     (GabcTunebook 
 
 GtkSourceFile *           gabc_tunebook_get_abc_source_file       (GabcTunebook *self);
 
-void                      gabc_tunebook_set_abc_source_file       (GabcTunebook *self, GFile *f);
+void                      gabc_tunebook_set_abc_source_file       (GabcTunebook *self, GFile *abc_src_file);
 
 void                      gabc_tunebook_clear                     (GabcTunebook *self);
 
