@@ -216,6 +216,7 @@ gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
   GTask *task;
   GabcTunebook *tunebook;
   GabcWindow *self = user_data;
+  GFile* save_file;
 
   tunebook = gabc_window_get_current_tunebook (self);
 
@@ -223,11 +224,11 @@ gabc_save_changes_dialog_show_file_save_dialog_cb (GObject *file_dialog,
   g_object_ref (task);
   g_assert (G_IS_TASK (task));
 
-  g_autoptr (GFile) file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
+  save_file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog),
                                                         res,
                                                         NULL);
-  if (file) {
-    gtk_source_file_set_location(gabc_tunebook_get_abc_source_file(tunebook), file);
+  if (G_IS_FILE (save_file)) {
+    gtk_source_file_set_location(gabc_tunebook_get_abc_source_file(tunebook), save_file);
     g_print ("Save the file now\n");
     gabc_save_changes_dialog_save (self, task);
   }
