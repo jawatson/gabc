@@ -743,7 +743,8 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
   GabcWindow *self = user_data;
 
   gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
-  self->tunebook->is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
+  //TODO this check should be moved to the tunebook.
+  //self->tunebook->is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
 
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook, self->settings);
@@ -853,7 +854,9 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   gint idx;
   gchar *cmd[20];
 
-  if (gtk_source_file_get_location(self->tunebook->abc_source_file) == NULL)
+  GtkSourceFile* abc_src_file;
+  abc_src_file = gabc_tunebook_get_abc_source_file (self->tunebook);
+  if (gtk_source_file_get_location(abc_src_file) == NULL)
   {
     // copy the str so we can free it later.
     working_dir_path = g_strdup (g_getenv ("XDG_CACHE_HOME"));

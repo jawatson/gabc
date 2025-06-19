@@ -23,7 +23,12 @@
 
 // Define the structure here
 //
-
+struct _GabcTunebook
+{
+  GtkSourceBuffer               parent_instance;
+  GtkSourceFile                *abc_source_file;
+  gboolean                      is_modified;
+};
 
 
 
@@ -307,6 +312,16 @@ gabc_tunebook_clear (GabcTunebook *self)
 GtkSourceFile*
 gabc_tunebook_get_abc_source_file (GabcTunebook *self)
 {
+  //return self->abc_source_file;
+  /*
+   GFile*
+   gtk_source_file_get_location (
+      GtkSourceFile* file
+  )
+  */
+
+  g_print ("gabc_tunebook_get_abc_source_file:\n");
+  g_print ("%s\n", g_file_get_path (gtk_source_file_get_location (self->abc_source_file)));
   return self->abc_source_file;
 }
 

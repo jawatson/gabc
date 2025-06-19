@@ -24,12 +24,7 @@
 
 G_BEGIN_DECLS
 
-struct _GabcTunebook
-{
-  GtkSourceBuffer               parent_instance;
-  GtkSourceFile                *abc_source_file;
-  gboolean                      is_modified;
-};
+
 
 
 #define GABC_TYPE_TUNEBOOK (gabc_tunebook_get_type())
