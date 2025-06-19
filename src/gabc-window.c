@@ -262,8 +262,6 @@ gabc_window_init (GabcWindow *self)
                               NULL,
                               NULL);
 
-
-  // self->tunebook->abc_source_file = gtk_source_file_new ();
   self->tunebook = gabc_tunebook_new();
   gtk_text_view_set_buffer (GTK_TEXT_VIEW(self->main_text_view), (GtkTextBuffer *) self->tunebook);
 
@@ -272,21 +270,6 @@ gabc_window_init (GabcWindow *self)
 
   self->log_window = gabc_log_window_new ((AdwApplicationWindow *) self);
 
-  /*
-  lm = gtk_source_language_manager_get_default ();
-  id = "abc";
-  language = gtk_source_language_manager_get_language (lm, id);
-  if (language == NULL)
-  {
-    g_print ("No language found for language id '%s'\n", id);
-  }
-  else
-  {
-    //TODO Why does the following line cause so many warnings?
-    // TODO move this to the tunebook class.
-    gtk_source_buffer_set_language ((GtkSourceBuffer *) self->tunebook, language);
-  }
-   */
   gtk_widget_grab_focus ( (GtkWidget *) self->main_text_view);
 }
 
@@ -707,10 +690,9 @@ gabc_window_file_save_dialog_cb (GObject       *file_dialog,
                                  gpointer       user_data)
 {
   GabcTunebook *tunebook;
+  GFile* save_file;
   GabcWindow *self = user_data;
   tunebook = self->tunebook;
-
-  GFile* save_file;
 
   save_file = gtk_file_dialog_save_finish (GTK_FILE_DIALOG (file_dialog), res, NULL);
   if (save_file) {
@@ -739,10 +721,10 @@ gabc_window_engrave_file (GSimpleAction *action G_GNUC_UNUSED,
                           gpointer       user_data)
 {
   gchar *abc_file_path, *ps_file_path;
-  gboolean gabc_buffer_is_modified;
+  //gboolean gabc_buffer_is_modified;
   GabcWindow *self = user_data;
 
-  gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
+  //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
   //TODO this check should be moved to the tunebook.
   //self->tunebook->is_modified = gabc_tunebook_is_modified(self->tunebook) || gabc_buffer_is_modified;
 
@@ -859,12 +841,15 @@ gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
   if (gtk_source_file_get_location(abc_src_file) == NULL)
   {
     // copy the str so we can free it later.
+    g_print ("gtk_source_file_get_location(abc_src_file) == NULL\n");
     working_dir_path = g_strdup (g_getenv ("XDG_CACHE_HOME"));
   }
   else
   {
+    g_print ("gtk_source_file_get_location(abc_src_file) != NULL\n");
     // gtk_source_file_get_location data is owned by the instance.
     working_file = gtk_source_file_get_location (gabc_tunebook_get_abc_source_file (self->tunebook));
+    g_print("Working Location: %s\n", g_file_get_path (working_file));
     working_dir_file = g_file_get_parent (working_file);
     working_dir_path = g_file_get_path (working_dir_file);
     g_object_unref (working_dir_file); // also working dir path...
