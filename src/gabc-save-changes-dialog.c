@@ -248,12 +248,12 @@ static void
 gabc_save_changes_dialog_save (GabcWindow *self, GTask *task)
 {
   GabcTunebook *tunebook;
+  GtkSourceFileSaver *saver;
 
   tunebook = gabc_window_get_current_tunebook(self);
 
-  GtkSourceFileSaver *saver = gtk_source_file_saver_new (
-                                  (GtkSourceBuffer *) tunebook,
-                                  gabc_tunebook_get_abc_source_file(tunebook));
+  saver = gtk_source_file_saver_new ((GtkSourceBuffer *) tunebook,
+                                      gabc_tunebook_get_abc_source_file(tunebook));
 
   g_assert (G_IS_TASK (task));
 

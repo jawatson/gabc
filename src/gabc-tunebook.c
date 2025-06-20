@@ -61,14 +61,14 @@ gabc_tunebook_init (GabcTunebook *self)
 {
   GtkSourceLanguageManager *lm;
   GtkSourceLanguage *language;
-  gchar *id;
+  const char *id = "abc";
 
   g_print ("in the init\n");
 
   self->abc_source_file = gtk_source_file_new ();
 
   lm = gtk_source_language_manager_get_default ();
-  id = "abc";
+
   language = gtk_source_language_manager_get_language (lm, id);
   if (language == NULL)
   {
@@ -87,9 +87,9 @@ void
 gabc_tunebook_open_file (GabcTunebook      *self,
                          GFile           *file)
 {
-  g_print ("gabc_tunebook_open_file\n");
-  g_print ("File: %s\n",g_file_get_path(file));
   GtkSourceFileLoader *loader;
+  g_print ("gabc_tunebook_open_file\n");
+  //g_print ("File: %s\n",g_file_get_path(file));
 
   gtk_source_file_set_location(GTK_SOURCE_FILE (self->abc_source_file), file);
   g_print ("File: %s",g_file_get_path( gtk_source_file_get_location (self->abc_source_file)));
