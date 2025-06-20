@@ -15,6 +15,8 @@ config_h.set_quoted('LOCALEDIR', join_paths(get_option('prefix'), get_option('lo
 configure_file(output: 'config.h', configuration: config_h)
 add_project_arguments(['-I' + meson.project_build_root()], language: 'c')
 
+r=run_command('write_git_header')
+
 project_c_args = []
 test_c_args = [
   '-Wcast-align',
