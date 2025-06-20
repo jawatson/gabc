@@ -1,6 +1,0 @@
-GIT_DATE=$(git show -s --format=%cs)
-GIT_HASH=$(git show -s --format=%h)
-# echo $GIT_DATE
-# echo $GIT_HASH
-printf '#define GABC_GIT_DATE "%s"\n#define GABC_GIT_HASH "%s"\n' $GIT_DATE $GIT_HASH > src/git-header.h 
-
