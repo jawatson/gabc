@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#include "git-header.h"
+
 #include "gabc-application.h"
 #include "gabc-window.h"
 #include "gabc-prefs-window.h"
@@ -73,7 +75,9 @@ gabc_application_about_action (GSimpleAction *action,
                                GVariant      *parameter,
                                gpointer       user_data)
 {
+        char gabc_git_version[50];
 	static const char *developers[] = {"James Watson", NULL};
+        g_snprintf(gabc_git_version, 50, "%s (%s)", GABC_GIT_DATE, GABC_GIT_HASH);
 	GabcApplication *self = user_data;
 	GtkWidget *parent = NULL;
 
@@ -85,7 +89,7 @@ gabc_application_about_action (GSimpleAction *action,
 	                       "application-name", "gabc",
 	                       "application-icon", "me.pm.m0dns.gabc",
 	                       "developer-name", "James Watson",
-	                       "version", "0.2",
+	                       "version", gabc_git_version,
 	                       "developers", developers,
 	                       "copyright", "© 2025 James Watson",
 	                       NULL);
