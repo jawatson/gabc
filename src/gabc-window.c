@@ -759,8 +759,6 @@ gabc_window_play_file  (GSimpleAction *action G_GNUC_UNUSED,
   GError *err = NULL;
   GabcWindow *self = user_data;
 
-  //gabc_buffer_is_modified = gtk_text_buffer_get_modified ( (GtkTextBuffer *) self->tunebook);
-
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), FALSE);
   abc_file_path = gabc_tunebook_write_to_scratch_file (self->tunebook, self->settings);
   gtk_widget_set_sensitive (GTK_WIDGET (self->main_text_view), TRUE);
@@ -814,6 +812,11 @@ gabc_window_set_file_extension (gchar *file_path, gchar *extension)
   return new_file_path;
 }
 
+
+/*
+ * Print the ps file. We need to specify the working diretory wehn running abc2ps
+ * to keep any relative links to format specifiers working.
+ */
 
 gchar *
 gabc_window_write_ps_file (gchar *file_path, GabcWindow *self)
