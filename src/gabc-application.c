@@ -75,12 +75,15 @@ gabc_application_about_action (GSimpleAction *action,
                                GVariant      *parameter,
                                gpointer       user_data)
 {
+ 	GabcApplication *self;
+  	GtkWidget *parent;
         char gabc_git_version[50];
 	static const char *developers[] = {"James Watson", NULL};
         g_snprintf(gabc_git_version, 50, "%s (%s)", GABC_GIT_DATE, GABC_GIT_HASH);
-	GabcApplication *self = user_data;
-	GtkWidget *parent = NULL;
 
+	parent = NULL;
+
+  	self = user_data;
 	g_assert (GABC_IS_APPLICATION (self));
 
 	parent = (GtkWidget *) gtk_application_get_active_window (GTK_APPLICATION (self));
