@@ -93,8 +93,8 @@ gabc_application_about_action (GSimpleAction *action,
 	                       "application-icon", "me.pm.m0dns.gabc",
 	                       "developer-name", "James Watson",
 	                       "version", gabc_git_version,
-	                       "developers", developers,
-	                       "copyright", "© 2025 James Watson",
+                               "license-type", GTK_LICENSE_GPL_3_0,
+	                       "copyright", "© 2023-2025 James Watson",
 	                       NULL);
 }
 
