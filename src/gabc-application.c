@@ -78,7 +78,7 @@ gabc_application_about_action (GSimpleAction *action,
  	GabcApplication *self;
   	GtkWidget *parent;
         char gabc_git_version[50];
-	static const char *developers[] = {"James Watson", NULL};
+	//static const char *developers[] = {"James Watson", NULL};
         g_snprintf(gabc_git_version, 50, "%s (%s)", GABC_GIT_DATE, GABC_GIT_HASH);
 
 	parent = NULL;
