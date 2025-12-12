@@ -47,7 +47,7 @@
     </context>
     
     <context id="heading" style-ref="def:identifier">	<!-- T:Title etc., no leading spaces -->
-      <start>^[A-Z]:</start>					        <!-- (also used to remove this from music lines) -->
+      <start>^[ABCDFGHIKLMmNOPQRrSsTUVWwXZ]:</start>					        <!-- (also used to remove this from music lines) -->
       <end>$</end>    							
     </context>
 
